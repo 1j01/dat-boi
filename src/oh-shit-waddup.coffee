@@ -95,11 +95,13 @@ animate ->
 		x_to = get_frog_hand_x(0, ball.next_hand_right)
 		y_to = get_frog_hand_y(0, ball.next_hand_right)
 		ball.t += 0.01
-		ball.x = x_from + (x_to - x_from) * min(1, ball.t) - sin(ball.t) * 250
-		ball.y = y_from + (y_to - y_from) * min(1, ball.t) - cos(ball.t) * 150
-		# ball.y = y_from + (y_to - y_from) * min(1, ball.t) - (1/2 + cos(ball.t)) * 150
+		ball.x = x_from + (x_to - x_from) * min(1, ball.t)
+		# ball.y = y_from + (y_to - y_from) * min(1, ball.t) - cos(ball.t) * 150
+		# ball.y = y_from + (y_to - y_from) * min(1, ball.t) - (1/2 + cos((ball.t + 1/2) * TAU)) * 150
+		ball.y = y_from + (y_to - y_from) * min(1, ball.t) - (cos((ball.t - 1/2) * TAU/2)) * 150
 		if ball.t >= 1
 			ball.next_hand_right = not ball.next_hand_right
+			ball.t = 0
 		ctx.save()
 		ctx.translate(ball.x, ball.y)
 		ctx.drawImage(ball_image, -ball_image.width/2, -ball_image.height/2)
