@@ -95,8 +95,8 @@ animate ->
 		dx = x_to - ball.x
 		dy = y_to - ball.y
 		ball.t += 0.01
-		ball.x += dx * min(1, ball.t)
-		ball.y += dy * min(1, ball.t) #- sin(ball.t) * 150
+		ball.x += dx * min(1, ball.t) - cos(ball.t) * 15
+		ball.y += dy * min(1, ball.t) - sin(ball.t) * 150
 		ctx.save()
 		ctx.translate(ball.x, ball.y)
 		ctx.drawImage(ball_image, -ball_image.width/2, -ball_image.height/2)
