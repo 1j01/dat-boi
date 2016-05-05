@@ -5,8 +5,24 @@ images =
 		img.src = "images/frames/dat-boi-#{n}.png"
 		img
 
+ball_image = new Image
+ball_image.src = "images/ball.png"
+
 position = 0
 velocity = 0
+
+balls = []
+
+window.onclick = ->
+# setInterval ->
+	balls.push {
+		x: 0
+		y: 0
+		vx: 0
+		vy: 0
+		next_hand_right: false
+	}
+# , 500
 
 y_at = (ground_x)->
 	canvas.height * 3/4 +
@@ -16,11 +32,29 @@ y_at = (ground_x)->
 	ground_x * 2
 
 x_at = (ground_x)->
-	canvas.width / 2 +
 	ground_x * 4
 
 delta_at = (ground_x)->
 	y_at(ground_x+0.1) - y_at(ground_x-0.1)
+
+# get_unicycle_ball_stuck_x = (ground_x, left)->
+# 	rot = delta_at(-10) / 3
+# 	x_at(0) + sin(rot) * 185
+# 
+# get_unicycle_ball_stuck_y = (ground_x, left)->
+# 	rot = delta_at(-10) / 3
+# 	y_at(0) - cos(rot) * 185
+
+# NOTE: frog's right hand, not "the hand on the right"
+get_frog_hand_x = (ground_x, right)->
+	rot = delta_at(ground_x - 10) / 3
+	hand_x = if right then -120 else 28
+	x_at(ground_x) + sin(rot) * 285 + cos(rot) * hand_x
+
+get_frog_hand_y = (ground_x, right)->
+	rot = delta_at(ground_x - 10) / 3
+	hand_x = if right then -120 else 28
+	y_at(ground_x) - cos(rot) * 285 + sin(rot) * hand_x
 
 animate ->
 	velocity -= delta_at(0)
@@ -29,8 +63,9 @@ animate ->
 	
 	ctx.fillStyle = "hsl(#{sin(Date.now() / 10000) * 360}, 80%, 80%)"
 	ctx.fillRect(0, 0, canvas.width, canvas.height)
-	frame_index = position / 1000 * 3 + Date.now() / 1000
-	frame = images[~~(frame_index %% images.length)]
+	
+	ctx.save()
+	ctx.translate(canvas.width / 2, 0)
 	
 	ctx.beginPath()
 	for ground_x in [-500..500]
@@ -42,8 +77,36 @@ animate ->
 	ctx.lineWidth = 10
 	ctx.stroke()
 	
+	frame_index = position / 1000 * 3 + Date.now() / 1000
+	frame = images[~~(frame_index %% images.length)]
+	
 	ctx.save()
 	ctx.translate x_at(0), y_at(0)
 	ctx.rotate delta_at(-10) / 3
 	ctx.drawImage frame, -185, -390
+	ctx.restore()
+	
+	for ball in balls
+		ball.x += ball.vx
+		ball.y += ball.vy
+		ball.vy += 0.5
+		# dx = get_frog_hand_x(0)
+		# ball.vx += dx / 10
+		# ball.x = get_frog_hand_x(0, no)
+		# ball.y = get_frog_hand_y(0, no)
+		# ball.x = get_frog_hand_x(0, yes)
+		# ball.y = get_frog_hand_y(0, yes)
+		# ball.x = get_frog_hand_x(10, yes)
+		# ball.y = get_frog_hand_y(10, yes)
+		dx = get_frog_hand_x(0, ball.next_hand_right) - ball.x
+		ball.vx += dx / 10
+		ball.vx *= 0.9
+		if ball.y > get_frog_hand_y(0, ball.next_hand_right)
+			ball.vy = -5
+			ball.next_hand_right = not ball.next_hand_right
+		ctx.save()
+		ctx.translate(ball.x, ball.y)
+		ctx.drawImage(ball_image, -ball_image.width/2, -ball_image.height/2)
+		ctx.restore()
+	
 	ctx.restore()
