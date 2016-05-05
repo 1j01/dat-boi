@@ -1,21 +1,52 @@
 
-images =
-	for n in [0..4]
-		img = new Image
-		img.src = "images/frames/dat-boi-#{n}.png"
-		img
-
-ball_image = new Image
-ball_image.src = "images/ball.png"
-
 position = 0
-velocity = 0
+
+class Unifrog
+	
+	frames =
+		for n in [0..4]
+			img = new Image
+			img.src = "images/frames/dat-boi-#{n}.png"
+			img
+	
+	constructor: ->
+		@velocity = 0
+	
+	getHandX: (ground_x, right)->
+		rot = delta_at(ground_x - 10) / 3
+		hand_x = if right then -120 else 40
+		ground_x + sin(rot) * 285 + cos(rot) * hand_x
+	
+	getHandY: (ground_x, right)->
+		rot = delta_at(ground_x - 10) / 3
+		hand_x = if right then -120 else 40
+		y_at(ground_x) - cos(rot) * 285 + sin(rot) * hand_x
+	
+	step: ->
+		@velocity -= delta_at(0)
+		@velocity *= 0.995
+		position += @velocity
+	
+	draw: ->
+		frame_index = position / 1000 * 3 + Date.now() / 1000
+		frame = frames[~~(frame_index %% frames.length)]
+		
+		ctx.save()
+		ctx.translate 0, y_at(0)
+		ctx.rotate delta_at(-10) / 3
+		ctx.drawImage frame, -185, -390
+		ctx.restore()
+
 
 balls = []
 
 gravity = 0.5
 
 class Ball
+	
+	ball_image = new Image
+	ball_image.src = "images/ball.png"
+
 	constructor: (@x, @y)->
 		@vx = 0
 		@vy = 0
@@ -30,10 +61,38 @@ class Ball
 		@vx = dx / t
 	
 	throwToNextHand: ->
-		hand_x = get_frog_hand_x(0, @next_hand_right)
-		hand_y = get_frog_hand_y(0, @next_hand_right)
+		hand_x = frog.getHandX(0, @next_hand_right)
+		hand_y = frog.getHandY(0, @next_hand_right)
 		parabola_height = if @next_hand_right then 300 else 200
 		@throwTo(hand_x, hand_y, parabola_height)
+	
+	step: ->
+		@x += @vx
+		@y += @vy
+		@vy += gravity
+		
+		hand_x = frog.getHandX(0, @next_hand_right)
+		hand_y = frog.getHandY(0, @next_hand_right)
+		@height_reached_after_bounce = min(@height_reached_after_bounce, @y)
+		
+		if (
+			(@height_reached_after_bounce < hand_y - 30) and
+			(hand_x - 30 < @x < hand_x + 30) and
+			(hand_y < @y < hand_y + 50)
+		)
+			@next_hand_right = not @next_hand_right
+			@height_reached_after_bounce = @y
+			@throwToNextHand()
+		
+		if @y > y_at(@x)
+			@vy = -0.9 * abs(@vy)
+			@vx += delta_at(@x)
+	
+	draw: ->
+		ctx.save()
+		ctx.translate(@x, @y)
+		ctx.drawImage(ball_image, -ball_image.width/2, -ball_image.height/2)
+		ctx.restore()
 
 y_at = (ground_x)->
 	ground_x /= 4
@@ -54,17 +113,6 @@ delta_at = (ground_x)->
 # 	rot = delta_at(-10) / 3
 # 	y_at(0) - cos(rot) * 185
 
-# NOTE: frog's right hand, not "the hand on the right"
-get_frog_hand_x = (ground_x, right)->
-	rot = delta_at(ground_x - 10) / 3
-	hand_x = if right then -120 else 40
-	ground_x + sin(rot) * 285 + cos(rot) * hand_x
-
-get_frog_hand_y = (ground_x, right)->
-	rot = delta_at(ground_x - 10) / 3
-	hand_x = if right then -120 else 40
-	y_at(ground_x) - cos(rot) * 285 + sin(rot) * hand_x
-
 starting_hand_right = false
 window.onclick = (e)->
 	ball = new Ball(e.clientX - canvas.width/2, e.clientY)
@@ -74,10 +122,12 @@ window.onclick = (e)->
 	y_at = (ground_x)->
 		canvas.height * 3/4
 
+frog = new Unifrog
+
 animate ->
-	velocity -= delta_at(0)
-	velocity *= 0.995
-	position += velocity
+	
+	frog.step()
+	ball.step() for ball in balls
 	
 	ctx.fillStyle = "hsl(#{sin(Date.now() / 10000) * 360}, 80%, 80%)"
 	ctx.fillRect(0, 0, canvas.width, canvas.height)
@@ -96,40 +146,7 @@ animate ->
 	ctx.lineWidth = 10
 	ctx.stroke()
 	
-	frame_index = position / 1000 * 3 + Date.now() / 1000
-	frame = images[~~(frame_index %% images.length)]
-	
-	ctx.save()
-	ctx.translate 0, y_at(0)
-	ctx.rotate delta_at(-10) / 3
-	ctx.drawImage frame, -185, -390
-	ctx.restore()
-	
-	for ball in balls
-		ball.x += ball.vx
-		ball.y += ball.vy
-		ball.vy += gravity
-		
-		hand_x = get_frog_hand_x(0, ball.next_hand_right)
-		hand_y = get_frog_hand_y(0, ball.next_hand_right)
-		ball.height_reached_after_bounce = min(ball.height_reached_after_bounce, ball.y)
-		
-		if (
-			(ball.height_reached_after_bounce < hand_y - 30) and
-			(hand_x - 30 < ball.x < hand_x + 30) and
-			(hand_y < ball.y < hand_y + 50)
-		)
-			ball.next_hand_right = not ball.next_hand_right
-			ball.height_reached_after_bounce = ball.y
-			ball.throwToNextHand()
-		
-		if ball.y > y_at(ball.x)
-			ball.vy = -0.9 * abs(ball.vy)
-			ball.vx += delta_at(ball.x)
-		
-		ctx.save()
-		ctx.translate(ball.x, ball.y)
-		ctx.drawImage(ball_image, -ball_image.width/2, -ball_image.height/2)
-		ctx.restore()
+	frog.draw()
+	ball.draw() for ball in balls
 	
 	ctx.restore()
