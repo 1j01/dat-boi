@@ -14,16 +14,18 @@ velocity = 0
 balls = []
 
 window.onclick = ->
-# setInterval ->
-	balls.push {
-		x: 0
-		y: 0
-		vx: 0
-		vy: 0
-		next_hand_right: false
-		height_reached_after_bounce: -Infinity
-	}
-# , 500
+	starting_hand_right = false
+	setInterval ->
+		balls.push {
+			x: 0
+			y: 0
+			vx: 0
+			vy: 0
+			next_hand_right: starting_hand_right
+			t: 0
+		}
+		starting_hand_right = not starting_hand_right
+	, 350
 
 y_at = (ground_x)->
 	canvas.height * 3/4 +
@@ -88,31 +90,13 @@ animate ->
 	ctx.restore()
 	
 	for ball in balls
-		ball.x += ball.vx
-		ball.y += ball.vy
-		ball.vy += 0.5
-		# dx = get_frog_hand_x(0, ball.next_hand_right) - ball.x
-		# ball.vx += dx / 1000
-		ball.vx *= 0.99
-		hand_x = get_frog_hand_x(0, ball.next_hand_right)
-		hand_y = get_frog_hand_y(0, ball.next_hand_right)
-		ball.height_reached_after_bounce = min(ball.height_reached_after_bounce, ball.y)
-		if (
-			(ball.height_reached_after_bounce < hand_y - 30) and
-			(hand_x - 30 < ball.x < hand_x + 30) and
-			(hand_y < ball.y < hand_y + 50)
-		)
-			ball.next_hand_right = not ball.next_hand_right
-			ball.height_reached_after_bounce = ball.y
-			dx = get_frog_hand_x(-0.001 * velocity, ball.next_hand_right) - ball.x
-			# dx = get_frog_hand_x(0, ball.next_hand_right) - ball.x
-			ball.vx += dx / 50
-			ball.vy = -15
-		# if ball.y > y_at(ball.x)
-		# if ball.y > y_at(x_at(ball.x))
-		if ball.y > y_at(ball.x / 4)
-			ball.vy = -0.9 * abs(ball.vy)
-			ball.vx += delta_at(ball.x / 4)
+		x_to = get_frog_hand_x(0, ball.next_hand_right)
+		y_to = get_frog_hand_y(0, ball.next_hand_right)
+		dx = x_to - ball.x
+		dy = y_to - ball.y
+		ball.t += 0.01
+		ball.x = (x_to - ball.x) * 1#min(1, ball.t)
+		ball.y = (y_to - ball.y) * 1#min(1, ball.t) #- sin(ball.t) * 150
 		ctx.save()
 		ctx.translate(ball.x, ball.y)
 		ctx.drawImage(ball_image, -ball_image.width/2, -ball_image.height/2)
