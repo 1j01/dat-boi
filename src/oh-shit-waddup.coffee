@@ -13,19 +13,19 @@ velocity = 0
 
 balls = []
 
-window.onclick = ->
-	starting_hand_right = false
-	setInterval ->
-		balls.push {
-			x: 0
-			y: 0
-			vx: 0
-			vy: 0
-			next_hand_right: starting_hand_right
-			t: 0
-		}
-		starting_hand_right = not starting_hand_right
-	, 350
+# window.onclick = ->
+starting_hand_right = false
+setInterval ->
+	balls.push {
+		x: 0
+		y: 0
+		vx: 0
+		vy: 0
+		next_hand_right: starting_hand_right
+		t: 0
+	}
+	starting_hand_right = not starting_hand_right
+, 350
 
 y_at = (ground_x)->
 	canvas.height * 3/4 +
@@ -90,13 +90,16 @@ animate ->
 	ctx.restore()
 	
 	for ball in balls
+		x_from = get_frog_hand_x(0, not ball.next_hand_right)
+		y_from = get_frog_hand_y(0, not ball.next_hand_right)
 		x_to = get_frog_hand_x(0, ball.next_hand_right)
 		y_to = get_frog_hand_y(0, ball.next_hand_right)
-		dx = x_to - ball.x
-		dy = y_to - ball.y
 		ball.t += 0.01
-		ball.x += dx * min(1, ball.t) - cos(ball.t) * 15
-		ball.y += dy * min(1, ball.t) - sin(ball.t) * 150
+		ball.x = x_from + (x_to - x_from) * min(1, ball.t) - sin(ball.t) * 250
+		ball.y = y_from + (y_to - y_from) * min(1, ball.t) - cos(ball.t) * 150
+		# ball.y = y_from + (y_to - y_from) * min(1, ball.t) - (1/2 + cos(ball.t)) * 150
+		if ball.t >= 1
+			ball.next_hand_right = not ball.next_hand_right
 		ctx.save()
 		ctx.translate(ball.x, ball.y)
 		ctx.drawImage(ball_image, -ball_image.width/2, -ball_image.height/2)
