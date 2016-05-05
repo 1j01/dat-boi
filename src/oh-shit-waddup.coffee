@@ -13,12 +13,27 @@ velocity = 0
 
 balls = []
 
-# class Ball
-# 	constructor: (@x, @y)->
-# 		@vx = 0
-# 		@vy = 0
-# 		@next_hand_right = starting_hand_right
-# 		@height_reached_after_bounce = -Infinity
+gravity = 0.5
+
+class Ball
+	constructor: (@x, @y)->
+		@vx = 0
+		@vy = 0
+		@next_hand_right = starting_hand_right
+		@height_reached_after_bounce = -Infinity
+	
+	throwTo: (x_to, y_to, parabola_height)->
+		dx = x_to - @x
+		dy = y_to - @y
+		t = (sqrt(2) * sqrt(parabola_height)) / sqrt(gravity) * 2
+		@vy = 1 - (1/2 * gravity * t ** 2 - dy) / t
+		@vx = dx / t
+	
+	throwToNextHand: ->
+		hand_x = get_frog_hand_x(0, @next_hand_right)
+		hand_y = get_frog_hand_y(0, @next_hand_right)
+		parabola_height = if @next_hand_right then 300 else 200
+		@throwTo(hand_x, hand_y, parabola_height)
 
 y_at = (ground_x)->
 	ground_x /= 4
@@ -42,26 +57,19 @@ delta_at = (ground_x)->
 # NOTE: frog's right hand, not "the hand on the right"
 get_frog_hand_x = (ground_x, right)->
 	rot = delta_at(ground_x - 10) / 3
-	hand_x = if right then -120 else 28
+	hand_x = if right then -120 else 40
 	ground_x + sin(rot) * 285 + cos(rot) * hand_x
 
 get_frog_hand_y = (ground_x, right)->
 	rot = delta_at(ground_x - 10) / 3
-	hand_x = if right then -120 else 28
+	hand_x = if right then -120 else 40
 	y_at(ground_x) - cos(rot) * 285 + sin(rot) * hand_x
 
-gravity = 0.5
-
 starting_hand_right = false
-window.onclick = ->
-	balls.push {
-		x: 0
-		y: 0
-		vx: 0
-		vy: 0
-		next_hand_right: starting_hand_right
-		height_reached_after_bounce: -Infinity
-	}
+window.onclick = (e)->
+	ball = new Ball(e.clientX - canvas.width/2, e.clientY)
+	balls.push ball
+	ball.throwToNextHand()
 	# starting_hand_right = not starting_hand_right
 	y_at = (ground_x)->
 		canvas.height * 3/4
@@ -113,12 +121,7 @@ animate ->
 		)
 			ball.next_hand_right = not ball.next_hand_right
 			ball.height_reached_after_bounce = ball.y
-			dx = get_frog_hand_x(0, ball.next_hand_right) - ball.x
-			dy = get_frog_hand_y(0, ball.next_hand_right) - ball.y
-			height = if ball.next_hand_right then 300 else 200
-			t = (sqrt(2) * sqrt(height)) / sqrt(gravity) * 2
-			ball.vy = 1 - (1/2 * gravity * t ** 2 - dy) / t
-			ball.vx = dx / t
+			ball.throwToNextHand()
 		
 		if ball.y > y_at(ball.x)
 			ball.vy = -0.9 * abs(ball.vy)
