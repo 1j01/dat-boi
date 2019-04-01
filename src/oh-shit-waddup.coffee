@@ -1,6 +1,4 @@
 
-position = 0
-
 class Unifrog
 	
 	frames =
@@ -11,29 +9,34 @@ class Unifrog
 	
 	constructor: ->
 		@velocity = 0
+		@position = 0
 	
-	getHandX: (ground_x, right)->
-		rot = delta_at(ground_x - 10) / 3
-		hand_x = if right then -120 else 40
-		ground_x + sin(rot) * 285 + cos(rot) * hand_x
+	getHandX: (right_hand)->
+		rot = delta_at(@position - 10) / 3
+		hand_x = if right_hand then -120 else 40
+		@position + sin(rot) * 285 + cos(rot) * hand_x
 	
-	getHandY: (ground_x, right)->
-		rot = delta_at(ground_x - 10) / 3
-		hand_x = if right then -120 else 40
-		y_at(ground_x) - cos(rot) * 285 + sin(rot) * hand_x
+	getHandY: (right_hand)->
+		rot = delta_at(@position - 10) / 3
+		hand_x = if right_hand then -120 else 40
+		y_at(@position) - cos(rot) * 285 + sin(rot) * hand_x
 	
 	step: ->
-		@velocity -= delta_at(0)
+		@velocity += delta_at(@position)
 		@velocity *= 0.995
-		position += @velocity
+		# @velocity /= 1.005
+		# @velocity /= 1+.005*4
+		# @velocity /= 1.02
+		@position += @velocity / 4
 	
 	draw: ->
-		frame_index = position / 1000 * 3 + Date.now() / 1000
+		frame_index = Date.now() / 1000 - @position / 1000 * 3 # 12
 		frame = frames[~~(frame_index %% frames.length)]
 		
+		# frog.position / 1500 * 50
 		ctx.save()
-		ctx.translate 0, y_at(0)
-		ctx.rotate delta_at(-10) / 3
+		ctx.translate 0, y_at(@position)
+		ctx.rotate delta_at(@position-10) / 3
 		ctx.drawImage frame, -185, -390
 		ctx.restore()
 
@@ -94,13 +97,13 @@ class Ball
 		ctx.drawImage(ball_image, -ball_image.width/2, -ball_image.height/2)
 		ctx.restore()
 
+overall_slope_y_at = (ground_x)->
+	-ground_x / 2
+
 y_at = (ground_x)->
-	ground_x /= 4
-	canvas.height * 3/4 +
-	100 * sin(position / 1500 - ground_x / 50) -
-	200 * sin((position / 1500 - ground_x / 50) / 3) -
-	# 200 * sin(ground_x / 67) -
-	ground_x * 2
+	overall_slope_y_at(ground_x) +
+	100 * sin(-ground_x / 200) -
+	200 * sin(-ground_x / 200 / 3)
 
 delta_at = (ground_x)->
 	y_at(ground_x+0.4) - y_at(ground_x-0.4)
@@ -115,12 +118,15 @@ delta_at = (ground_x)->
 
 starting_hand_right = false
 window.onclick = (e)->
-	ball = new Ball(e.clientX - canvas.width/2, e.clientY)
+	# ball = new Ball(e.clientX - canvas.width/2, e.clientY)
+	# ball = new Ball(e.clientX - canvas.width / 2, e.clientY - canvas.height * 3/4 - overall_slope_y_at(frog.position))
+	# ball = new Ball(e.clientX, e.clientY)
+	ball = new Ball(e.clientX - canvas.width/2, e.clientY - canvas.height * 3/4)
 	balls.push ball
 	ball.throwToNextHand()
 	# starting_hand_right = not starting_hand_right
-	y_at = (ground_x)->
-		canvas.height * 3/4
+	# y_at = (ground_x)-> 0
+	# overall_slope_y_at = (ground_x)-> 0
 
 frog = new Unifrog
 
@@ -133,13 +139,13 @@ animate ->
 	ctx.fillRect(0, 0, canvas.width, canvas.height)
 	
 	ctx.save()
-	ctx.translate(canvas.width / 2, 0)
+	ctx.translate(canvas.width / 2, canvas.height * 3/4 - overall_slope_y_at(frog.position))
 	
 	ctx.beginPath()
 	ctx.lineWidth = 150
 	bound = canvas.width/2 + ctx.lineWidth
 	for ground_x in [-bound..bound] by 5
-		ctx.lineTo(ground_x, y_at(ground_x))
+		ctx.lineTo(ground_x, y_at(ground_x + frog.position))
 	ctx.strokeStyle = "hsl(#{sin(Date.now() / 10000) * 360 + 20}, 100%, 90%)"
 	ctx.stroke()
 	ctx.strokeStyle = "white"
