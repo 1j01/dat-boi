@@ -10,6 +10,12 @@ sound_variation_counts = {
 	chirp: 4
 }
 
+music_tracks = [
+	"audio/music/carnival_of_strangeness.mp3"
+	"audio/music/RollUp.ogg"
+	"audio/music/taking_you_to_the_circus_mastered.mp3"
+]
+
 memoize = (fn) =>
 	cache = {}
 	(...args) =>
@@ -46,6 +52,14 @@ play_sound = (name, { playback_rate = 1, playback_rate_variation = 0, volume = 1
 		source.playbackRate.value = playback_rate + (Math.random() * playback_rate_variation)
 	else
 		console.warn("no sound named", name)
+
+# Using <audio> for music, so that system media controls can be used (on iOS)
+music = new Audio()
+music.src = music_tracks[Math.floor(Math.random() * music_tracks.length)]
+music.loop = true
+# music.play()
+addEventListener("pointerdown", (=> music.play()), { once: true })
+
 
 position = 0
 
