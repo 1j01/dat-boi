@@ -1,4 +1,36 @@
 
+audio_ctx = new AudioContext()
+sound_file_paths = {
+	bounce: "audio/boing.mp3",
+}
+
+memoize = (fn) =>
+	cache = {}
+	(...args) =>
+		if cache[args]
+			cache[args]
+		else
+			cache[args] = fn(...args)
+
+load_sound = memoize (path) =>
+	response = await fetch(path)
+	array_buffer = await response.arrayBuffer()
+	audio_buffer = await audio_ctx.decodeAudioData(array_buffer)
+
+play_sound = (name, { pitch_variation = 0, volume = 1 } = {}) =>
+	if sound_file_paths[name]
+		path = sound_file_paths[name]
+		gain = audio_ctx.createGain()
+		gain.gain.value = volume
+		gain.connect(audio_ctx.destination)
+		source = audio_ctx.createBufferSource()
+		source.buffer = await load_sound(path)
+		source.connect(gain)
+		source.start()
+		source.playbackRate.value = 1 + (Math.random() * pitch_variation)
+	else
+		console.warn("no sound named", name)
+
 position = 0
 
 class Unifrog
@@ -98,6 +130,7 @@ class Ball
 			@height_reached_after_bounce = @y
 			@collides_with_ground = true
 			@throwToNextHand()
+			play_sound("bounce", { pitch_variation: 0.1 })
 		
 		if @y > y_at(@x) and @collides_with_ground
 			@vy = -0.9 * abs(@vy)
