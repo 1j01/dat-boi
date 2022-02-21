@@ -47,7 +47,7 @@ class Ball
 	ball_image = new Image
 	ball_image.src = "images/ball.png"
 
-	constructor: (@x, @y)->
+	constructor: (@x, @y, @frog)->
 		@vx = 0
 		@vy = 0
 		@next_hand_right = starting_hand_right
@@ -61,8 +61,8 @@ class Ball
 		@vx = dx / t
 	
 	throwToNextHand: ->
-		hand_x = frog.getHandX(0, @next_hand_right)
-		hand_y = frog.getHandY(0, @next_hand_right)
+		hand_x = @frog.getHandX(0, @next_hand_right)
+		hand_y = @frog.getHandY(0, @next_hand_right)
 		parabola_height = if @next_hand_right then 300 else 200
 		@throwTo(hand_x, hand_y, parabola_height)
 	
@@ -71,8 +71,8 @@ class Ball
 		@y += @vy
 		@vy += gravity
 		
-		hand_x = frog.getHandX(0, @next_hand_right)
-		hand_y = frog.getHandY(0, @next_hand_right)
+		hand_x = @frog.getHandX(0, @next_hand_right)
+		hand_y = @frog.getHandY(0, @next_hand_right)
 		@height_reached_after_bounce = min(@height_reached_after_bounce, @y)
 		
 		if (
@@ -113,20 +113,20 @@ delta_at = (ground_x)->
 # 	rot = delta_at(-10) / 3
 # 	y_at(0) - cos(rot) * 185
 
+datBoi = new Unifrog
+
 starting_hand_right = false
 window.onclick = (e)->
-	ball = new Ball(e.clientX - canvas.width/2, e.clientY)
+	ball = new Ball(e.clientX - canvas.width/2, e.clientY, datBoi)
 	balls.push ball
 	ball.throwToNextHand()
 	# starting_hand_right = not starting_hand_right
 	y_at = (ground_x)->
 		canvas.height * 3/4
 
-frog = new Unifrog
-
 animate ->
 	
-	frog.step()
+	datBoi.step()
 	ball.step() for ball in balls
 	
 	ctx.fillStyle = "hsl(#{sin(Date.now() / 10000) * 360}, 80%, 80%)"
@@ -146,7 +146,7 @@ animate ->
 	ctx.lineWidth = 10
 	ctx.stroke()
 	
-	frog.draw()
+	datBoi.draw()
 	ball.draw() for ball in balls
 	
 	ctx.restore()
