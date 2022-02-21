@@ -1,9 +1,9 @@
 
 audio_ctx = new AudioContext()
 sound_file_paths = {
-	bounce: "audio/boing.mp3"
-	quack: "audio/duck-quack-#.ogg"
-	chirp: "audio/duckling-chirp-#.ogg"
+	bounce: "audio/sfx/boing.mp3"
+	quack: "audio/sfx/duck-quack-#.ogg"
+	chirp: "audio/sfx/duckling-chirp-#.ogg"
 }
 sound_variation_counts = {
 	quack: 12
