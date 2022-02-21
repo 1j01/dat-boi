@@ -148,5 +148,23 @@ animate ->
 	
 	datBoi.draw()
 	ball.draw() for ball in balls
+	ball_save_states = balls.map (ball)->
+		# might be better to use a dynamic array of properties
+		{x, y, vx, vy, next_hand_right, height_reached_after_bounce} = ball
+		{x, y, vx, vy, next_hand_right, height_reached_after_bounce, ball}
+	ctx.globalAlpha = 0.1
+	for [0..40]
+		for ball in balls
+			ball.step()
+			ball.draw()
+	ctx.globalAlpha = 1
+	for ball_save_state in ball_save_states
+		{x, y, vx, vy, next_hand_right, height_reached_after_bounce, ball} = ball_save_state
+		ball.x = x
+		ball.y = y
+		ball.vx = vx
+		ball.vy = vy
+		ball.next_hand_right = next_hand_right
+		ball.height_reached_after_bounce = height_reached_after_bounce
 	
 	ctx.restore()
