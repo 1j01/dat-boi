@@ -152,6 +152,8 @@ animate ->
 	
 	datBoi.draw()
 	ball.draw() for ball in balls
+	old_position = position
+	old_velocity = datBoi.velocity
 	ball_save_states = balls.map (ball)->
 		properties = Object.fromEntries(Ball.save_properties.map (key)->
 			[key, ball[key]]
@@ -162,9 +164,12 @@ animate ->
 		for ball in balls
 			ball.step()
 			ball.draw()
+		datBoi.step()
 	ctx.globalAlpha = 1
 	for { ball, properties } in ball_save_states
 		for key in Ball.save_properties
 			ball[key] = properties[key]
+	position = old_position
+	datBoi.velocity = old_velocity
 	
 	ctx.restore()
