@@ -1,7 +1,11 @@
 
 audio_ctx = new AudioContext()
 sound_file_paths = {
-	bounce: "audio/boing.mp3",
+	bounce: "audio/boing.mp3"
+	quack: "audio/duck-quack-#.ogg"
+}
+sound_variation_counts = {
+	quack: 12
 }
 
 memoize = (fn) =>
@@ -17,9 +21,19 @@ load_sound = memoize (path) =>
 	array_buffer = await response.arrayBuffer()
 	audio_buffer = await audio_ctx.decodeAudioData(array_buffer)
 
+# preload sounds
+for name, path in sound_file_paths
+	if sound_variation_counts[name]
+		for i in [1...sound_variation_counts[name]]
+			load_sound(path.replace("#", i))
+	else
+		load_sound(path)
+
 play_sound = (name, { playback_rate = 1, playback_rate_variation = 0, volume = 1 } = {}) =>
 	if sound_file_paths[name]
 		path = sound_file_paths[name]
+		if sound_variation_counts[name]
+			path = path.replace("#", Math.floor(Math.random() * sound_variation_counts[name]) + 1)
 		gain = audio_ctx.createGain()
 		gain.gain.value = volume
 		gain.connect(audio_ctx.destination)
@@ -79,11 +93,19 @@ class Ball
 	ball_image = new Image
 	ball_image.src = "images/ball.png"
 
-	@save_properties = ["x", "y", "vx", "vy", "next_hand_right", "height_reached_after_bounce", "collides_with_ground"]
+	duck_image = new Image
+	duck_image.src = "images/duck.png"
 
-	constructor: (@x, @y, @frog)->
+	duckie_image = new Image
+	duckie_image.src = "images/duckie.png"
+
+	@save_properties = ["x", "y", "angle", "vx", "vy", "vangle", "next_hand_right", "height_reached_after_bounce", "collides_with_ground"]
+
+	constructor: (@x, @y, @frog, @type)->
 		@vx = 0
 		@vy = 0
+		@vangle = 0
+		@angle = 0
 		@next_hand_right = starting_hand_right
 		@height_reached_after_bounce = -Infinity
 		@collides_with_ground = false
@@ -111,10 +133,12 @@ class Ball
 		@frog.velocity = old_velocity
 
 		@throwTo(hand_x, hand_y, parabola_height)
+		@vangle *= -1
 	
 	step: ->
 		@x += @vx
 		@y += @vy
+		@angle += @vangle
 		@vy += gravity
 		
 		hand_x = @frog.getHandX(0, @next_hand_right)
@@ -130,7 +154,10 @@ class Ball
 			@height_reached_after_bounce = @y
 			@collides_with_ground = true
 			@throwToNextHand()
-			play_sound("bounce", { playback_rate: Math.pow(@vy / -15, 1.2) + 0.2, volume: 0.5 })
+			if @type is "duck"
+				play_sound("quack")
+			else
+				play_sound("bounce", { playback_rate: Math.pow(@vy / -15, 1.2) + 0.2, volume: 0.5 })
 		
 		if @y > y_at(@x) and @collides_with_ground
 			@vy = -0.9 * abs(@vy)
@@ -139,7 +166,13 @@ class Ball
 	draw: ->
 		ctx.save()
 		ctx.translate(@x, @y)
-		ctx.drawImage(ball_image, -ball_image.width/2, -ball_image.height/2)
+		if @type isnt "ball"
+			ctx.rotate(@angle)
+		if @type is "duck"
+			ctx.scale(0.5, 0.5)
+			ctx.drawImage(duck_image, -duck_image.width/2, -duck_image.height/2)
+		else
+			ctx.drawImage(ball_image, -ball_image.width/2, -ball_image.height/2)
 		ctx.restore()
 
 y_at = (ground_x)->
@@ -165,7 +198,11 @@ datBoi = new Unifrog
 
 starting_hand_right = false
 window.onclick = (e)->
-	ball = new Ball(e.clientX - canvas.width/2, e.clientY, datBoi)
+	x = e.clientX - canvas.width/2
+	y = e.clientY
+	ball_type = if Math.random() < 0.5 then "duck" else "ball"
+	ball = new Ball(x, y, datBoi, ball_type)
+	ball.vangle = 0.1
 	balls.push ball
 	ball.throwToNextHand()
 	# starting_hand_right = not starting_hand_right
