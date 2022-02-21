@@ -47,13 +47,14 @@ class Ball
 	ball_image = new Image
 	ball_image.src = "images/ball.png"
 
-	@save_properties = ["x", "y", "vx", "vy", "next_hand_right", "height_reached_after_bounce"]
+	@save_properties = ["x", "y", "vx", "vy", "next_hand_right", "height_reached_after_bounce", "collides_with_ground"]
 
 	constructor: (@x, @y, @frog)->
 		@vx = 0
 		@vy = 0
 		@next_hand_right = starting_hand_right
 		@height_reached_after_bounce = -Infinity
+		@collides_with_ground = false
 	
 	throwTo: (x_to, y_to, parabola_height)->
 		dx = x_to - @x
@@ -95,9 +96,10 @@ class Ball
 		)
 			@next_hand_right = not @next_hand_right
 			@height_reached_after_bounce = @y
+			@collides_with_ground = true
 			@throwToNextHand()
 		
-		if @y > y_at(@x)
+		if @y > y_at(@x) and @collides_with_ground
 			@vy = -0.9 * abs(@vy)
 			@vx += delta_at(@x)
 	
@@ -159,7 +161,7 @@ animate ->
 	
 	datBoi.draw()
 	ball.draw() for ball in balls
-	
+
 	if window.visualize_trajectory
 		old_position = position
 		old_velocity = datBoi.velocity
