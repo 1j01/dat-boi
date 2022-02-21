@@ -3,9 +3,11 @@ audio_ctx = new AudioContext()
 sound_file_paths = {
 	bounce: "audio/boing.mp3"
 	quack: "audio/duck-quack-#.ogg"
+	chirp: "audio/duckling-chirp-#.ogg"
 }
 sound_variation_counts = {
 	quack: 12
+	chirp: 4
 }
 
 memoize = (fn) =>
@@ -156,6 +158,8 @@ class Ball
 			@throwToNextHand()
 			if @type is "duck"
 				play_sound("quack")
+			else if @type is "duckie"
+				play_sound("chirp", { playback_rate_variation: 0.1 })
 			else
 				play_sound("bounce", { playback_rate: Math.pow(@vy / -15, 1.2) + 0.2, volume: 0.5 })
 		
@@ -171,6 +175,9 @@ class Ball
 		if @type is "duck"
 			ctx.scale(0.5, 0.5)
 			ctx.drawImage(duck_image, -duck_image.width/2, -duck_image.height/2)
+		else if @type is "duckie"
+			ctx.scale(0.25, 0.25)
+			ctx.drawImage(duckie_image, -duckie_image.width/2, -duckie_image.height/2)
 		else
 			ctx.drawImage(ball_image, -ball_image.width/2, -ball_image.height/2)
 		ctx.restore()
@@ -200,7 +207,7 @@ starting_hand_right = false
 window.onclick = (e)->
 	x = e.clientX - canvas.width/2
 	y = e.clientY
-	ball_type = if Math.random() < 0.5 then "duck" else "ball"
+	ball_type = if Math.random() < 0.1 then "duck" else if Math.random() < 0.3 then "duckie" else "ball"
 	ball = new Ball(x, y, datBoi, ball_type)
 	ball.vangle = 0.1
 	balls.push ball
