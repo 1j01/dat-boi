@@ -63,9 +63,20 @@ class Ball
 		@vx = dx / t
 	
 	throwToNextHand: ->
+		old_position = position
+		old_velocity = @frog.velocity
+		
+		parabola_height = if @next_hand_right then 300 else 200
+		t = (sqrt(2) * sqrt(parabola_height)) / sqrt(gravity) * 2
+
+		for i in [0..t]
+			@frog.step()
 		hand_x = @frog.getHandX(0, @next_hand_right)
 		hand_y = @frog.getHandY(0, @next_hand_right)
-		parabola_height = if @next_hand_right then 300 else 200
+		
+		position = old_position
+		@frog.velocity = old_velocity
+
 		@throwTo(hand_x, hand_y, parabola_height)
 	
 	step: ->
