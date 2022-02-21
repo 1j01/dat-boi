@@ -119,12 +119,14 @@ datBoi = new Unifrog
 
 starting_hand_right = false
 window.onclick = (e)->
+	# simplify the terrain to make juggling easier (TODO: remove)
+	y_at = (ground_x)->
+		canvas.height * 3/4
+	
 	ball = new Ball(e.clientX - canvas.width/2, e.clientY, datBoi)
 	balls.push ball
 	ball.throwToNextHand()
 	# starting_hand_right = not starting_hand_right
-	y_at = (ground_x)->
-		canvas.height * 3/4
 
 animate ->
 	
