@@ -17,7 +17,7 @@ load_sound = memoize (path) =>
 	array_buffer = await response.arrayBuffer()
 	audio_buffer = await audio_ctx.decodeAudioData(array_buffer)
 
-play_sound = (name, { pitch_variation = 0, volume = 1 } = {}) =>
+play_sound = (name, { playback_rate = 1, playback_rate_variation = 0, volume = 1 } = {}) =>
 	if sound_file_paths[name]
 		path = sound_file_paths[name]
 		gain = audio_ctx.createGain()
@@ -27,7 +27,7 @@ play_sound = (name, { pitch_variation = 0, volume = 1 } = {}) =>
 		source.buffer = await load_sound(path)
 		source.connect(gain)
 		source.start()
-		source.playbackRate.value = 1 + (Math.random() * pitch_variation)
+		source.playbackRate.value = playback_rate + (Math.random() * playback_rate_variation)
 	else
 		console.warn("no sound named", name)
 
@@ -130,7 +130,7 @@ class Ball
 			@height_reached_after_bounce = @y
 			@collides_with_ground = true
 			@throwToNextHand()
-			play_sound("bounce", { pitch_variation: 0.1 })
+			play_sound("bounce", { playback_rate: Math.pow(@vy / -15, 1.2) + 0.2, volume: 0.5 })
 		
 		if @y > y_at(@x) and @collides_with_ground
 			@vy = -0.9 * abs(@vy)
