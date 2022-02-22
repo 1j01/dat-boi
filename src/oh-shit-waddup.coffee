@@ -285,7 +285,7 @@ window.onclick = (e)->
 	else if Math.random() < 0.1
 		prop_type = "duck"
 		duck_counter = 3 + Math.random() * 4
-	else if Math.random() < 0.1
+	else if Math.random() < 0.1 and props.filter((prop) -> prop.type is "torch").length < 3
 		prop_type = "torch"
 	prop = new Prop(x, y, dat_boi, prop_type)
 	prop.vangle = 0.1
