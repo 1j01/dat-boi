@@ -127,6 +127,8 @@ class Particle
 		@vy += Math.sin(@angle) * 0.1
 		@vy -= 0.1
 		@life -= 1
+		@x += dat_boi.velocity * 0.05 # @TODO: make coordinate system reasonable! (0.05 is magic number / guess)
+		# shouldn't have to include dat boi in this, but he is the center of the universe right now
 	
 	draw: ->
 		ctx.save()
