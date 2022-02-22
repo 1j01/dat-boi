@@ -288,7 +288,7 @@ get_next_prop = ->
 		duck_counter = 3 + Math.random() * 4
 	else if Math.random() < 0.1 and props.filter((prop) -> prop.type is "torch").length < 3
 		prop_type = "torch"
-	prop = new Prop(0, 0, dat_boi, prop_type)
+	prop = new Prop(100000, 100000, dat_boi, prop_type)
 	prop.vangle = 0.1
 	props.push prop
 	prop
