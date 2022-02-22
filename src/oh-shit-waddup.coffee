@@ -125,7 +125,7 @@ class Particle
 		@angle += @vangle
 		@vx += Math.cos(@angle) * 0.1
 		@vy += Math.sin(@angle) * 0.1
-		@vy -= 0.01
+		@vy -= 0.1
 		@life -= 1
 	
 	draw: ->
