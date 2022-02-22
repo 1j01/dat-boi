@@ -316,6 +316,7 @@ animate ->
 	prop.step() for prop in props when prop isnt next_prop
 	particle.step() for particle in particles
 	particles = particles.filter((particle)-> particle.life > 0)
+	next_prop.angle += next_prop.vangle
 	
 	ctx.fillStyle = "hsl(#{sin(Date.now() / 10000) * 360}, 80%, 80%)"
 	ctx.fillRect(0, 0, canvas.width, canvas.height)
