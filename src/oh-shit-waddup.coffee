@@ -4,10 +4,12 @@ sound_file_paths = {
 	bounce: "audio/sfx/boing.mp3"
 	quack: "audio/sfx/duck-quack-#.ogg"
 	chirp: "audio/sfx/duckling-chirp-#.ogg"
+	flame: "audio/sfx/flame-#.mp3"
 }
 sound_variation_counts = {
 	quack: 12
 	chirp: 4
+	flame: 5
 }
 
 music_tracks = [
