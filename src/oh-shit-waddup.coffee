@@ -56,8 +56,10 @@ play_sound = (name, { playback_rate = 1, playback_rate_variation = 0, volume = 1
 		source.connect(gain)
 		source.start()
 		source.playbackRate.value = playback_rate + (Math.random() * playback_rate_variation)
+		return new Promise((resolve) => source.onended = resolve)
 	else
-		console.warn("no sound named", name)
+		# console.warn("no sound named", name)
+		return Promise.reject(new Error("no sound named " + name))
 
 # Using <audio> for music, so that system media controls can be used (on iOS)
 music = new Audio()
@@ -241,6 +243,18 @@ class Prop
 			@vy = -0.9 * abs(@vy)
 			@vx += delta_at(@x)
 	
+	start_engine: ->
+		if @type isnt "chainsaw"
+			return
+		await play_sound("chainsaw_start")
+		@loop_engine()
+	
+	loop_engine: ->
+		if @type isnt "chainsaw"
+			return
+		await play_sound("chainsaw_engine_loop")
+		@loop_engine()
+
 	draw: ->
 		ctx.save()
 		ctx.translate(@x, @y)
@@ -306,7 +320,7 @@ get_next_prop = ->
 	prop.vangle = 0.1
 	props.push prop
 	if prop_type is "chainsaw"
-		play_sound("chainsaw_start")
+		prop.start_engine()
 	prop
 
 next_prop = get_next_prop()
