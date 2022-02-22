@@ -218,10 +218,18 @@ delta_at = (ground_x)->
 dat_boi = new Unifrog
 
 starting_hand_right = false
+duck_counter = 0
 window.onclick = (e)->
 	x = e.clientX - canvas.width/2
 	y = e.clientY
-	prop_type = if Math.random() < 0.1 then "duck" else if Math.random() < 0.3 then "duckie" else "ball"
+	prop_type = "ball"
+	if duck_counter > 0
+		prop_type = "duckie"
+		duck_counter -= 1
+	else if Math.random() < 0.1
+		prop_type = "duck"
+		duck_counter = 3 + Math.random() * 4
+	# prop_type = if Math.random() < 0.1 then "duck" else if Math.random() < 0.3 then "duckie" else "ball"
 	prop = new Prop(x, y, dat_boi, prop_type)
 	prop.vangle = 0.1
 	props.push prop
