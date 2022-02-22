@@ -115,6 +115,9 @@ class Prop
 	duckie_image = new Image
 	duckie_image.src = "images/duckie.png"
 
+	torch_image = new Image
+	torch_image.src = "images/juggling-torch.png"
+
 	@save_properties = ["x", "y", "angle", "vx", "vy", "vangle", "next_hand_right", "height_reached_after_bounce", "collides_with_ground"]
 
 	constructor: (@x, @y, @frog, @type)->
@@ -174,6 +177,8 @@ class Prop
 				play_sound("quack")
 			else if @type is "duckie"
 				play_sound("chirp", { playback_rate_variation: 0.1 })
+			else if @type is "torch"
+				play_sound("flame", { playback_rate_variation: 0.2 })
 			else
 				play_sound("bounce", { playback_rate: Math.pow(@vy / -15, 1.2) + 0.2, volume: 0.5 })
 		
@@ -192,6 +197,9 @@ class Prop
 		else if @type is "duckie"
 			ctx.scale(0.25, 0.25)
 			ctx.drawImage(duckie_image, -duckie_image.width/2, -duckie_image.height/2)
+		else if @type is "torch"
+			ctx.scale(0.4, 0.4)
+			ctx.drawImage(torch_image, -torch_image.width/2, -torch_image.height/2)
 		else
 			ctx.drawImage(ball_image, -ball_image.width/2, -ball_image.height/2)
 		ctx.restore()
@@ -229,7 +237,8 @@ window.onclick = (e)->
 	else if Math.random() < 0.1
 		prop_type = "duck"
 		duck_counter = 3 + Math.random() * 4
-	# prop_type = if Math.random() < 0.1 then "duck" else if Math.random() < 0.3 then "duckie" else "ball"
+	else if Math.random() < 0.1
+		prop_type = "torch"
 	prop = new Prop(x, y, dat_boi, prop_type)
 	prop.vangle = 0.1
 	props.push prop
