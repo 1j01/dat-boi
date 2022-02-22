@@ -130,13 +130,17 @@ class Particle
 		ctx.save()
 		ctx.translate @x, @y
 		ctx.rotate @angle
+		scale = Math.pow(@life / 50, 2)
+		ctx.scale scale, scale
 		# ctx.drawImage @flame_image, -@flame_image.width / 2, -@flame_image.height / 2
-		ctx.fillStyle = "rgba(255, 125, 0, 0.2)"
+		# ctx.shadowBlur = 10
+		# ctx.shadowColor = "rgba(255, 125, 0, 0.2)"
+		ctx.fillStyle = "rgba(255, 125, 0, 0.3)"
 		ctx.fillRect -4, -8, 8, 16
 		ctx.fillStyle = "rgba(255, 255, 0, 0.6)"
-		ctx.fillRect -2, -2, 4, 4
-		ctx.fillStyle = "rgba(255, 255, 255, 0.5)"
-		ctx.fillRect -1, -1, 2, 2
+		ctx.fillRect -2, -4, 4, 8
+		ctx.fillStyle = "rgba(255, 255, 255, 0.9)"
+		ctx.fillRect -1, -2, 2, 4
 		ctx.restore()
 
 gravity = 0.5
@@ -235,11 +239,13 @@ class Prop
 			ctx.scale(0.25, 0.25)
 			ctx.drawImage(duckie_image, -duckie_image.width/2, -duckie_image.height/2)
 		else if @type is "torch"
-			ctx.scale(0.4, 0.4)
+			scale = 0.4
+			ctx.scale(scale, scale)
 			ctx.drawImage(torch_image, -torch_image.width/2, -torch_image.height/2)
-			x = Math.sin(@angle) * torch_image.height/2 + @x
-			y = Math.cos(@angle) * torch_image.height/2 + @y
-			particles.push(new Particle(x, y, @vx, @vy, @vangle))
+			x = Math.sin(Math.PI-@angle) * torch_image.height/2*scale + @x
+			y = Math.cos(Math.PI-@angle) * torch_image.height/2*scale + @y
+			for [0..4]
+				particles.push(new Particle(x, y, @vx, @vy, @vangle))
 		else
 			ctx.drawImage(ball_image, -ball_image.width/2, -ball_image.height/2)
 		ctx.restore()
