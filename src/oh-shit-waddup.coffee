@@ -100,11 +100,11 @@ class Unifrog
 		ctx.restore()
 
 
-balls = []
+props = []
 
 gravity = 0.5
 
-class Ball
+class Prop
 	
 	ball_image = new Image
 	ball_image.src = "images/ball.png"
@@ -221,17 +221,17 @@ starting_hand_right = false
 window.onclick = (e)->
 	x = e.clientX - canvas.width/2
 	y = e.clientY
-	ball_type = if Math.random() < 0.1 then "duck" else if Math.random() < 0.3 then "duckie" else "ball"
-	ball = new Ball(x, y, datBoi, ball_type)
-	ball.vangle = 0.1
-	balls.push ball
-	ball.throwToNextHand()
+	prop_type = if Math.random() < 0.1 then "duck" else if Math.random() < 0.3 then "duckie" else "ball"
+	prop = new Prop(x, y, datBoi, prop_type)
+	prop.vangle = 0.1
+	props.push prop
+	prop.throwToNextHand()
 	# starting_hand_right = not starting_hand_right
 
 animate ->
 	
 	datBoi.step()
-	ball.step() for ball in balls
+	prop.step() for prop in props
 	
 	ctx.fillStyle = "hsl(#{sin(Date.now() / 10000) * 360}, 80%, 80%)"
 	ctx.fillRect(0, 0, canvas.width, canvas.height)
@@ -251,26 +251,26 @@ animate ->
 	ctx.stroke()
 	
 	datBoi.draw()
-	ball.draw() for ball in balls
+	prop.draw() for prop in props
 
 	if window.visualize_trajectory
 		old_position = position
 		old_velocity = datBoi.velocity
-		ball_save_states = balls.map (ball)->
-			properties = Object.fromEntries(Ball.save_properties.map (key)->
-				[key, ball[key]]
+		prop_save_states = props.map (prop)->
+			properties = Object.fromEntries(Prop.save_properties.map (key)->
+				[key, prop[key]]
 			)
-			{ ball, properties }
+			{ prop, properties }
 		ctx.globalAlpha = 0.1
 		for [0..40]
-			for ball in balls
-				ball.step()
-				ball.draw()
+			for prop in props
+				prop.step()
+				prop.draw()
 			datBoi.step()
 		ctx.globalAlpha = 1
-		for { ball, properties } in ball_save_states
-			for key in Ball.save_properties
-				ball[key] = properties[key]
+		for { prop, properties } in prop_save_states
+			for key in Prop.save_properties
+				prop[key] = properties[key]
 		position = old_position
 		datBoi.velocity = old_velocity
 	
