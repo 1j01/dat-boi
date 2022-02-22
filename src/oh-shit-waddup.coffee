@@ -5,11 +5,15 @@ sound_file_paths = {
 	quack: "audio/sfx/duck-quack-#.ogg"
 	chirp: "audio/sfx/duckling-chirp-#.ogg"
 	flame: "audio/sfx/flame-#.mp3"
+	chainsaw_rev: "audio/sfx/chainsaw-rev-#.ogg"
+	chainsaw_start: "audio/sfx/chainsaw-start.ogg"
+	chainsaw_engine_loop: "audio/sfx/chainsaw-engine-loop.ogg"
 }
 sound_variation_counts = {
 	quack: 12
 	chirp: 4
 	flame: 5
+	chainsaw_rev: 5
 }
 
 music_tracks = [
@@ -163,6 +167,9 @@ class Prop
 	torch_image = new Image
 	torch_image.src = "images/juggling-torch.png"
 
+	chainsaw_image = new Image
+	chainsaw_image.src = "images/juggling-chainsaw.png"
+
 	@save_properties = ["x", "y", "angle", "vx", "vy", "vangle", "next_hand_right", "height_reached_after_bounce", "collides_with_ground"]
 
 	constructor: (@x, @y, @frog, @type)->
@@ -225,6 +232,8 @@ class Prop
 				play_sound("chirp", { playback_rate_variation: 0.1 })
 			else if @type is "torch"
 				play_sound("flame", { playback_rate_variation: 0.2 })
+			else if @type is "chainsaw"
+				play_sound("chainsaw_rev", { playback_rate_variation: 0.2 })
 			else
 				play_sound("bounce", { playback_rate: Math.pow(@vy / -15, 1.2) + 0.2, volume: 0.2 })
 		
@@ -251,6 +260,9 @@ class Prop
 			y = Math.cos(Math.PI-@angle) * torch_image.height/2*scale + @y
 			for [0..4]
 				particles.push(new Particle(x, y, @vx, @vy, @vangle))
+		else if @type is "chainsaw"
+			ctx.scale(0.6, 0.6)
+			ctx.drawImage(chainsaw_image, -chainsaw_image.width/2, -chainsaw_image.height/2)
 		else
 			ctx.drawImage(ball_image, -ball_image.width/2, -ball_image.height/2)
 		ctx.restore()
@@ -288,9 +300,13 @@ get_next_prop = ->
 		duck_counter = 3 + Math.random() * 4
 	else if Math.random() < 0.1 and props.filter((prop) -> prop.type is "torch").length < 3
 		prop_type = "torch"
+	else if Math.random() < 0.1 and props.filter((prop) -> prop.type is "chainsaw").length < 3
+		prop_type = "chainsaw"
 	prop = new Prop(100000, 100000, dat_boi, prop_type)
 	prop.vangle = 0.1
 	props.push prop
+	if prop_type is "chainsaw"
+		play_sound("chainsaw_start")
 	prop
 
 next_prop = get_next_prop()
