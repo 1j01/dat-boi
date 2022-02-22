@@ -276,9 +276,7 @@ dat_boi = new Unifrog
 
 starting_hand_right = false
 duck_counter = 0
-window.onclick = (e)->
-	x = e.clientX - canvas.width/2
-	y = e.clientY
+get_next_prop = ->
 	prop_type = "ball"
 	if duck_counter > 0
 		prop_type = "duckie"
@@ -288,16 +286,34 @@ window.onclick = (e)->
 		duck_counter = 3 + Math.random() * 4
 	else if Math.random() < 0.1 and props.filter((prop) -> prop.type is "torch").length < 3
 		prop_type = "torch"
-	prop = new Prop(x, y, dat_boi, prop_type)
+	prop = new Prop(0, 0, dat_boi, prop_type)
 	prop.vangle = 0.1
 	props.push prop
-	prop.throw_to_next_hand()
+	prop
+
+next_prop = get_next_prop()
+
+window.onclick = (e)->
+	x = e.clientX - canvas.width/2
+	y = e.clientY
+	next_prop.x = x
+	next_prop.y = y
+	next_prop.throw_to_next_hand()
 	# starting_hand_right = not starting_hand_right
+	next_prop = get_next_prop()
+	next_prop.x = x
+	next_prop.y = y
+
+window.onmousemove = (e)->
+	x = e.clientX - canvas.width/2
+	y = e.clientY
+	next_prop.x = x
+	next_prop.y = y
 
 animate ->
 	
 	dat_boi.step()
-	prop.step() for prop in props
+	prop.step() for prop in props when prop isnt next_prop
 	particle.step() for particle in particles
 	particles = particles.filter((particle)-> particle.life > 0)
 	
