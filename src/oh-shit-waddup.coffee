@@ -223,7 +223,7 @@ class Prop
 			else if @type is "torch"
 				play_sound("flame", { playback_rate_variation: 0.2 })
 			else
-				play_sound("bounce", { playback_rate: Math.pow(@vy / -15, 1.2) + 0.2, volume: 0.5 })
+				play_sound("bounce", { playback_rate: Math.pow(@vy / -15, 1.2) + 0.2, volume: 0.2 })
 		
 		if @y > y_at(@x) and @collides_with_ground
 			@vy = -0.9 * abs(@vy)
