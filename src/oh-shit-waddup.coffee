@@ -74,12 +74,12 @@ class Unifrog
 	constructor: ->
 		@velocity = 0
 	
-	getHandX: (ground_x, right)->
+	get_hand_x: (ground_x, right)->
 		rot = delta_at(ground_x - 10) / 3
 		hand_x = if right then -120 else 40
 		ground_x + sin(rot) * 285 + cos(rot) * hand_x
 	
-	getHandY: (ground_x, right)->
+	get_hand_y: (ground_x, right)->
 		rot = delta_at(ground_x - 10) / 3
 		hand_x = if right then -120 else 40
 		y_at(ground_x) - cos(rot) * 285 + sin(rot) * hand_x
@@ -126,14 +126,14 @@ class Prop
 		@height_reached_after_bounce = -Infinity
 		@collides_with_ground = false
 	
-	throwTo: (x_to, y_to, parabola_height)->
+	throw_to: (x_to, y_to, parabola_height)->
 		dx = x_to - @x
 		dy = y_to - @y
 		t = (sqrt(2) * sqrt(parabola_height)) / sqrt(gravity) * 2
 		@vy = 1 - (1/2 * gravity * t ** 2 - dy) / t
 		@vx = dx / t
 	
-	throwToNextHand: ->
+	throw_to_next_hand: ->
 		old_position = position
 		old_velocity = @frog.velocity
 		
@@ -142,13 +142,13 @@ class Prop
 
 		for i in [0..t]
 			@frog.step()
-		hand_x = @frog.getHandX(0, @next_hand_right)
-		hand_y = @frog.getHandY(0, @next_hand_right)
+		hand_x = @frog.get_hand_x(0, @next_hand_right)
+		hand_y = @frog.get_hand_y(0, @next_hand_right)
 		
 		position = old_position
 		@frog.velocity = old_velocity
 
-		@throwTo(hand_x, hand_y, parabola_height)
+		@throw_to(hand_x, hand_y, parabola_height)
 		@vangle *= -1
 	
 	step: ->
@@ -157,8 +157,8 @@ class Prop
 		@angle += @vangle
 		@vy += gravity
 		
-		hand_x = @frog.getHandX(0, @next_hand_right)
-		hand_y = @frog.getHandY(0, @next_hand_right)
+		hand_x = @frog.get_hand_x(0, @next_hand_right)
+		hand_y = @frog.get_hand_y(0, @next_hand_right)
 		@height_reached_after_bounce = min(@height_reached_after_bounce, @y)
 		
 		if (
@@ -169,7 +169,7 @@ class Prop
 			@next_hand_right = not @next_hand_right
 			@height_reached_after_bounce = @y
 			@collides_with_ground = true
-			@throwToNextHand()
+			@throw_to_next_hand()
 			if @type is "duck"
 				play_sound("quack")
 			else if @type is "duckie"
@@ -215,22 +215,22 @@ delta_at = (ground_x)->
 # 	rot = delta_at(-10) / 3
 # 	y_at(0) - cos(rot) * 185
 
-datBoi = new Unifrog
+dat_boi = new Unifrog
 
 starting_hand_right = false
 window.onclick = (e)->
 	x = e.clientX - canvas.width/2
 	y = e.clientY
 	prop_type = if Math.random() < 0.1 then "duck" else if Math.random() < 0.3 then "duckie" else "ball"
-	prop = new Prop(x, y, datBoi, prop_type)
+	prop = new Prop(x, y, dat_boi, prop_type)
 	prop.vangle = 0.1
 	props.push prop
-	prop.throwToNextHand()
+	prop.throw_to_next_hand()
 	# starting_hand_right = not starting_hand_right
 
 animate ->
 	
-	datBoi.step()
+	dat_boi.step()
 	prop.step() for prop in props
 	
 	ctx.fillStyle = "hsl(#{sin(Date.now() / 10000) * 360}, 80%, 80%)"
@@ -250,12 +250,12 @@ animate ->
 	ctx.lineWidth = 10
 	ctx.stroke()
 	
-	datBoi.draw()
+	dat_boi.draw()
 	prop.draw() for prop in props
 
 	if window.visualize_trajectory
 		old_position = position
-		old_velocity = datBoi.velocity
+		old_velocity = dat_boi.velocity
 		prop_save_states = props.map (prop)->
 			properties = Object.fromEntries(Prop.save_properties.map (key)->
 				[key, prop[key]]
@@ -266,12 +266,12 @@ animate ->
 			for prop in props
 				prop.step()
 				prop.draw()
-			datBoi.step()
+			dat_boi.step()
 		ctx.globalAlpha = 1
 		for { prop, properties } in prop_save_states
 			for key in Prop.save_properties
 				prop[key] = properties[key]
 		position = old_position
-		datBoi.velocity = old_velocity
+		dat_boi.velocity = old_velocity
 	
 	ctx.restore()
