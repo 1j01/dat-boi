@@ -101,6 +101,43 @@ class Unifrog
 
 
 props = []
+particles = []
+
+class Particle
+
+	# flame_image = new Image
+	# flame_image.src = "images/flame.png"
+
+	constructor: (@x, @y, @vx, @vy, @vangle)->
+		@angle = Math.random() * Math.PI * 2
+		@vx /= 5
+		@vy /= 5
+		@life = 100
+
+	step: ->
+		@x += @vx
+		@y += @vy
+		@vx *= 0.99
+		@vy *= 0.99
+		@vangle += (Math.random() - 0.5) * 0.1
+		@angle += @vangle
+		@vx += Math.cos(@angle) * 0.1
+		@vy += Math.sin(@angle) * 0.1
+		@vy -= 0.01
+		@life -= 1
+	
+	draw: ->
+		ctx.save()
+		ctx.translate @x, @y
+		ctx.rotate @angle
+		# ctx.drawImage @flame_image, -@flame_image.width / 2, -@flame_image.height / 2
+		ctx.fillStyle = "rgba(255, 125, 0, 0.2)"
+		ctx.fillRect -4, -8, 8, 16
+		ctx.fillStyle = "rgba(255, 255, 0, 0.6)"
+		ctx.fillRect -2, -2, 4, 4
+		ctx.fillStyle = "rgba(255, 255, 255, 0.5)"
+		ctx.fillRect -1, -1, 2, 2
+		ctx.restore()
 
 gravity = 0.5
 
@@ -200,6 +237,9 @@ class Prop
 		else if @type is "torch"
 			ctx.scale(0.4, 0.4)
 			ctx.drawImage(torch_image, -torch_image.width/2, -torch_image.height/2)
+			x = Math.sin(@angle) * torch_image.height/2 + @x
+			y = Math.cos(@angle) * torch_image.height/2 + @y
+			particles.push(new Particle(x, y, @vx, @vy, @vangle))
 		else
 			ctx.drawImage(ball_image, -ball_image.width/2, -ball_image.height/2)
 		ctx.restore()
@@ -249,6 +289,8 @@ animate ->
 	
 	dat_boi.step()
 	prop.step() for prop in props
+	particle.step() for particle in particles
+	particles = particles.filter((particle)-> particle.life > 0)
 	
 	ctx.fillStyle = "hsl(#{sin(Date.now() / 10000) * 360}, 80%, 80%)"
 	ctx.fillRect(0, 0, canvas.width, canvas.height)
@@ -269,6 +311,7 @@ animate ->
 	
 	dat_boi.draw()
 	prop.draw() for prop in props
+	particle.draw() for particle in particles
 
 	if window.visualize_trajectory
 		old_position = position
