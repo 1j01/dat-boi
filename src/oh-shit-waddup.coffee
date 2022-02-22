@@ -184,6 +184,7 @@ class Prop
 		old_velocity = @frog.velocity
 		
 		parabola_height = if @next_hand_right then 300 else 200
+		parabola_height *= Math.max(1, Math.min(3, props.length / 20 - 1/2))
 		t = (sqrt(2) * sqrt(parabola_height)) / sqrt(gravity) * 2
 
 		for i in [0..t]
