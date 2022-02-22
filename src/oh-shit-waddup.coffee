@@ -172,6 +172,9 @@ class Prop
 	chainsaw_image = new Image
 	chainsaw_image.src = "images/juggling-chainsaw.png"
 
+	table_saw_image = new Image
+	table_saw_image.src = "images/table-saw.png"
+
 	@save_properties = ["x", "y", "angle", "vx", "vy", "vangle", "next_hand_right", "height_reached_after_bounce", "collides_with_ground"]
 
 	constructor: (@x, @y, @frog, @type)->
@@ -234,7 +237,7 @@ class Prop
 				play_sound("chirp", { playback_rate_variation: 0.1 })
 			else if @type is "torch"
 				play_sound("flame", { playback_rate_variation: 0.2 })
-			else if @type is "chainsaw"
+			else if @type is "chainsaw" or @type is "table_saw"
 				play_sound("chainsaw_rev", { playback_rate_variation: 0.2 })
 			else
 				play_sound("bounce", { playback_rate: Math.pow(@vy / -15, 1.2) + 0.2, volume: 0.2 })
@@ -244,13 +247,13 @@ class Prop
 			@vx += delta_at(@x)
 	
 	start_engine: ->
-		if @type isnt "chainsaw"
+		if @type isnt "chainsaw" and @type isnt "table_saw"
 			return
 		await play_sound("chainsaw_start")
 		@loop_engine()
 	
 	loop_engine: ->
-		if @type isnt "chainsaw"
+		if @type isnt "chainsaw" and @type isnt "table_saw"
 			return
 		await play_sound("chainsaw_engine_loop")
 		@loop_engine()
@@ -277,6 +280,9 @@ class Prop
 		else if @type is "chainsaw"
 			ctx.scale(0.6, 0.6)
 			ctx.drawImage(chainsaw_image, -chainsaw_image.width/2, -chainsaw_image.height/2)
+		else if @type is "table_saw"
+			ctx.scale(0.3, 0.3)
+			ctx.drawImage(table_saw_image, -table_saw_image.width/2, -table_saw_image.height/2)
 		else
 			ctx.drawImage(ball_image, -ball_image.width/2, -ball_image.height/2)
 		ctx.restore()
@@ -316,10 +322,12 @@ get_next_prop = ->
 		prop_type = "torch"
 	else if Math.random() < 0.1 and props.filter((prop) -> prop.type is "chainsaw").length < 3
 		prop_type = "chainsaw"
+	else if Math.random() < 0.01 and props.filter((prop) -> prop.type is "table_saw").length < 3
+		prop_type = "table_saw"
 	prop = new Prop(100000, 100000, dat_boi, prop_type)
 	prop.vangle = 0.1
 	props.push prop
-	if prop_type is "chainsaw"
+	if prop_type is "chainsaw" or prop_type is "table_saw"
 		prop.start_engine()
 	prop
 
