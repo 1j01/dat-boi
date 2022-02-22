@@ -132,7 +132,7 @@ class Particle
 		ctx.save()
 		ctx.translate @x, @y
 		ctx.rotate @angle
-		scale = Math.pow(@life / 50, 2)
+		scale = Math.pow(@life / 80, 6)
 		ctx.scale scale, scale
 		# ctx.drawImage @flame_image, -@flame_image.width / 2, -@flame_image.height / 2
 		# ctx.shadowBlur = 10
