@@ -405,15 +405,11 @@ next_prop = get_next_prop()
 mouse_client_coords = {x: 100000, y: 100000}
 
 window.onclick = (e)->
-	mouse_client_coords.x = e.clientX
-	mouse_client_coords.y = e.clientY
 	{x, y} = client_to_world(mouse_client_coords)
 	next_prop.x = x
 	next_prop.y = y
 	next_prop.throw_to_next_hand()
 	next_prop = get_next_prop()
-	next_prop.x = x
-	next_prop.y = y
 
 window.onmousemove = (e)->
 	mouse_client_coords.x = e.clientX
