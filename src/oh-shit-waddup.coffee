@@ -46,14 +46,14 @@ for name, path of sound_file_paths
 	else
 		load_sound(path)
 
-play_sound = (name, { playback_rate = 1, playback_rate_variation = 0, volume = 1, looping = false, time = 0 } = {}) =>
+play_sound = (name, { playback_rate = 1, playback_rate_variation = 0, volume = 1, looping = false, time = 0, destination = audio_ctx.destination } = {}) =>
 	if sound_file_paths[name]
 		path = sound_file_paths[name]
 		if sound_variation_counts[name]
 			path = path.replace("#", Math.floor(Math.random() * sound_variation_counts[name]) + 1)
 		gain = audio_ctx.createGain()
 		gain.gain.value = volume
-		gain.connect(audio_ctx.destination)
+		gain.connect(destination)
 		source = audio_ctx.createBufferSource()
 		source.buffer = await load_sound(path)
 		source.loop = looping
@@ -196,6 +196,8 @@ class Prop
 		@height_reached_after_bounce = -Infinity
 		@collides_with_ground = false
 		@in_ground = false
+		@panner_node = audio_ctx.createStereoPanner()
+		@panner_node.connect(audio_ctx.destination)
 	
 	throw_to: (x_to, y_to, parabola_height)->
 		dx = x_to - @x
@@ -230,6 +232,9 @@ class Prop
 		@angle += @vangle
 		@vy += gravity
 		
+		client_pos = world_to_client({ x: @x, y: @y }) # (or (@))
+		@panner_node.pan.value = Math.min(1, Math.max(-1, client_pos.x / canvas.width))
+
 		hand = @in_hand?.hand ? @next_hand_right
 		hand_x = @frog.get_hand_x(hand)
 		hand_y = @frog.get_hand_y(hand)
@@ -280,26 +285,30 @@ class Prop
 			@in_ground = false
 			@play_bounce_sound(false)
 	
+	play_sound: (name, options={})->
+		options.destination ?= @panner_node
+		play_sound(name, options)
+
 	play_bounce_sound: (juggling)->
 		# TODO: clank sounds for chainsaw and table saw when hitting ground (not juggling)
 		if @type is "duck"
-			play_sound("quack")
+			@play_sound("quack")
 		else if @type is "duckie"
-			play_sound("chirp", { playback_rate_variation: 0.1 })
+			@play_sound("chirp", { playback_rate_variation: 0.1 })
 		else if @type is "torch"
-			play_sound("flame", { playback_rate_variation: 0.2 })
+			@play_sound("flame", { playback_rate_variation: 0.2 })
 		else if @type is "chainsaw"
-			play_sound("chainsaw_rev", { playback_rate_variation: 0.2 })
+			@play_sound("chainsaw_rev", { playback_rate_variation: 0.2 })
 		else if @type is "table_saw"
-			# play_sound("chainsaw_rev", { playback_rate_variation: 0.2 })
-			# play_sound("table_saw_loop", { playback_rate_variation: 0.2 })
-			# play_sound("table_saw_loop", { playback_rate: 20 })
+			# @play_sound("chainsaw_rev", { playback_rate_variation: 0.2 })
+			# @play_sound("table_saw_loop", { playback_rate_variation: 0.2 })
+			# @play_sound("table_saw_loop", { playback_rate: 20 })
 			if juggling
-				play_sound("whoosh", { playback_rate_variation: 0.2 })
+				@play_sound("whoosh", { playback_rate_variation: 0.2 })
 			else
-				play_sound("bounce", { playback_rate: Math.pow(@vy / -15, 1.2) + 0.2, volume: 0.5 })
+				@play_sound("bounce", { playback_rate: Math.pow(@vy / -15, 1.2) + 0.2, volume: 0.5 })
 		else
-			play_sound("bounce", { playback_rate: Math.pow(@vy / -15, 1.2) + 0.2, volume: 0.2 })
+			@play_sound("bounce", { playback_rate: Math.pow(@vy / -15, 1.2) + 0.2, volume: 0.2 })
 	
 	start_engine: ->
 		if @type isnt "chainsaw" and @type isnt "table_saw"
@@ -307,8 +316,8 @@ class Prop
 		start_sound = if @type is "table_saw" then "table_saw_start" else "chainsaw_start"
 		loop_sound = if @type is "table_saw" then "table_saw_loop" else "chainsaw_engine_loop"
 		audio_buffer = await load_sound(sound_file_paths[start_sound])
-		play_sound(start_sound, { time: audio_ctx.currentTime })
-		play_sound(loop_sound, { looping: true, time: audio_ctx.currentTime + audio_buffer.duration })
+		@play_sound(start_sound, { time: audio_ctx.currentTime })
+		@play_sound(loop_sound, { looping: true, time: audio_ctx.currentTime + audio_buffer.duration })
 	
 	draw: ->
 		ctx.save()
