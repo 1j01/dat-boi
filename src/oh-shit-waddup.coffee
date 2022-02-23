@@ -185,7 +185,7 @@ class Prop
 	table_saw_image = new Image
 	table_saw_image.src = "images/table-saw.png"
 
-	@save_properties = ["x", "y", "angle", "vx", "vy", "vangle", "next_hand_right", "height_reached_after_bounce", "collides_with_ground", "in_ground"]
+	@save_properties = ["x", "y", "angle", "vx", "vy", "vangle", "next_hand_right", "height_reached_after_bounce", "collides_with_ground", "in_ground", "in_hand"]
 
 	constructor: (@x, @y, @frog, @type)->
 		@vx = 0
@@ -230,20 +230,39 @@ class Prop
 		@angle += @vangle
 		@vy += gravity
 		
-		hand_x = @frog.get_hand_x(@next_hand_right)
-		hand_y = @frog.get_hand_y(@next_hand_right)
+		hand = @in_hand?.hand ? @next_hand_right
+		hand_x = @frog.get_hand_x(hand)
+		hand_y = @frog.get_hand_y(hand)
 		@height_reached_after_bounce = min(@height_reached_after_bounce, @y)
 		
-		if (
+		if @in_hand
+			@x = hand_x
+			@y = hand_y
+			# @angle = 0
+			@in_hand.time += 1
+			time_needed = switch @type
+				when "ball" then 0
+				when "duck" then 20
+				when "duckie" then 0
+				when "torch" then 10
+				when "chainsaw" then 15
+				when "table-saw" then 20
+				else 0
+			if @in_hand.time > time_needed
+				@in_hand = null
+				@throw_to_next_hand()
+				@play_bounce_sound(true)
+		else if (
 			(@height_reached_after_bounce < hand_y - 30) and
 			(hand_x - 30 < @x < hand_x + 30) and
 			(hand_y < @y < hand_y + 50)
 		)
+			@in_hand = { hand: @next_hand_right, time: 0 }
 			@next_hand_right = not @next_hand_right
 			@height_reached_after_bounce = @y
 			@collides_with_ground = true
-			@throw_to_next_hand()
-			@play_bounce_sound(true)
+			# @throw_to_next_hand()
+			# @play_bounce_sound(true)
 		
 		if @y > y_at(@x) and @collides_with_ground
 			@vy = -0.9 * abs(@vy)
