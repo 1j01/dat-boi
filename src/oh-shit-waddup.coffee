@@ -265,11 +265,11 @@ class Prop
 			hand_occupied = props.some((prop)->
 				prop.in_hand? and prop.in_hand.hand == hand
 			)
+			@collides_with_ground = true
 			if not hand_occupied
 				@in_hand = { hand: @next_hand_right, time: 0 }
 				@next_hand_right = not @next_hand_right
 				@height_reached_after_bounce = @y
-				@collides_with_ground = true
 				# @throw_to_next_hand()
 				# @play_bounce_sound(true)
 		
