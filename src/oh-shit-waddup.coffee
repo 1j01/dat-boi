@@ -46,7 +46,7 @@ for name, path in sound_file_paths
 	else
 		load_sound(path)
 
-play_sound = (name, { playback_rate = 1, playback_rate_variation = 0, volume = 1 } = {}) =>
+play_sound = (name, { playback_rate = 1, playback_rate_variation = 0, volume = 1, looping = false, time = 0 } = {}) =>
 	if sound_file_paths[name]
 		path = sound_file_paths[name]
 		if sound_variation_counts[name]
@@ -56,8 +56,9 @@ play_sound = (name, { playback_rate = 1, playback_rate_variation = 0, volume = 1
 		gain.connect(audio_ctx.destination)
 		source = audio_ctx.createBufferSource()
 		source.buffer = await load_sound(path)
+		source.loop = looping
 		source.connect(gain)
-		source.start()
+		source.start(time)
 		source.playbackRate.value = playback_rate + (Math.random() * playback_rate_variation)
 		return new Promise((resolve) => source.onended = resolve)
 	else
@@ -257,15 +258,12 @@ class Prop
 	start_engine: ->
 		if @type isnt "chainsaw" and @type isnt "table_saw"
 			return
-		await play_sound(if @type is "table_saw" then "table_saw_start" else "chainsaw_start")
-		@loop_engine()
+		start_sound = if @type is "table_saw" then "table_saw_start" else "chainsaw_start"
+		loop_sound = if @type is "table_saw" then "table_saw_loop" else "chainsaw_engine_loop"
+		audio_buffer = await load_sound(sound_file_paths[start_sound])
+		play_sound(start_sound, { time: audio_ctx.currentTime })
+		play_sound(loop_sound, { looping: true, time: audio_ctx.currentTime + audio_buffer.duration })
 	
-	loop_engine: ->
-		if @type isnt "chainsaw" and @type isnt "table_saw"
-			return
-		await play_sound(if @type is "table_saw" then "table_saw_loop" else "chainsaw_engine_loop")
-		@loop_engine()
-
 	draw: ->
 		ctx.save()
 		ctx.translate(@x, @y)
