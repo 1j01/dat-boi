@@ -73,7 +73,7 @@ music.loop = true
 addEventListener("pointerdown", (=> music.play()), { once: true })
 
 
-position = 0
+camera = { centerX: 0, centerY: 0 }
 
 class Unifrog
 	
@@ -83,31 +83,39 @@ class Unifrog
 			img.src = "images/frames/dat-boi-#{n}.png"
 			img
 	
+	@save_properties = ["position", "velocity", "wheel_rotation"]
+
 	constructor: ->
+		@position = 0
 		@velocity = 0
+		@wheel_rotation = 0
 	
-	get_hand_x: (ground_x, right)->
-		rot = delta_at(ground_x - 10) / 3
+	get_hand_x: (right)->
+		rot = delta_at(@position - 10) / 3
 		hand_x = if right then -120 else 40
-		ground_x + sin(rot) * 285 + cos(rot) * hand_x
+		@position + sin(rot) * 285 + cos(rot) * hand_x
 	
-	get_hand_y: (ground_x, right)->
-		rot = delta_at(ground_x - 10) / 3
+	get_hand_y: (right)->
+		rot = delta_at(@position - 10) / 3
 		hand_x = if right then -120 else 40
-		y_at(ground_x) - cos(rot) * 285 + sin(rot) * hand_x
+		y_at(@position) - cos(rot) * 285 + sin(rot) * hand_x
 	
 	step: ->
-		@velocity -= delta_at(0)
+		@velocity += delta_at(@position) / 8
 		@velocity *= 0.995
-		position += @velocity
+		@position += @velocity
+		x_travel = @velocity
+		y_travel = y_at(@position - @velocity) - y_at(@position)
+		travel = Math.hypot(x_travel, y_travel) * Math.sign(x_travel)
+		@wheel_rotation += travel / 90
 	
 	draw: ->
-		frame_index = position / 1000 * 3 + Date.now() / 1000
+		frame_index = -@wheel_rotation / Math.PI / 2 * frames.length # + Date.now() / 1000
 		frame = frames[~~(frame_index %% frames.length)]
 		
 		ctx.save()
-		ctx.translate 0, y_at(0)
-		ctx.rotate delta_at(-10) / 3
+		ctx.translate @position, y_at(@position)
+		ctx.rotate delta_at(@position - 10) / 3
 		ctx.drawImage frame, -185, -390
 		ctx.restore()
 
@@ -137,8 +145,6 @@ class Particle
 		@vy += Math.sin(@angle) * 0.1
 		@vy -= 0.1
 		@life -= 1
-		@x += dat_boi.velocity * 0.05 # @TODO: make coordinate system reasonable! (0.05 is magic number / guess)
-		# shouldn't have to include dat boi in this, but he is the center of the universe right now
 	
 	draw: ->
 		ctx.save()
@@ -199,8 +205,9 @@ class Prop
 		@vx = dx / t
 	
 	throw_to_next_hand: ->
-		old_position = position
-		old_velocity = @frog.velocity
+		frog_saved_properties = Object.fromEntries(Unifrog.save_properties.map (key)=>
+			[key, @frog[key]]
+		)
 		
 		parabola_height = if @next_hand_right then 300 else 200
 		parabola_height *= Math.max(1, Math.min(3, props.length / 20 - 1/2))
@@ -208,11 +215,11 @@ class Prop
 
 		for i in [0..t]
 			@frog.step()
-		hand_x = @frog.get_hand_x(0, @next_hand_right)
-		hand_y = @frog.get_hand_y(0, @next_hand_right)
+		hand_x = @frog.get_hand_x(@next_hand_right)
+		hand_y = @frog.get_hand_y(@next_hand_right)
 		
-		position = old_position
-		@frog.velocity = old_velocity
+		for key in Unifrog.save_properties
+			@frog[key] = frog_saved_properties[key]
 
 		@throw_to(hand_x, hand_y, parabola_height)
 		@vangle *= -1
@@ -223,8 +230,8 @@ class Prop
 		@angle += @vangle
 		@vy += gravity
 		
-		hand_x = @frog.get_hand_x(0, @next_hand_right)
-		hand_y = @frog.get_hand_y(0, @next_hand_right)
+		hand_x = @frog.get_hand_x(@next_hand_right)
+		hand_y = @frog.get_hand_y(@next_hand_right)
 		@height_reached_after_bounce = min(@height_reached_after_bounce, @y)
 		
 		if (
@@ -311,10 +318,8 @@ class Prop
 
 y_at = (ground_x)->
 	ground_x /= 4
-	canvas.height * 3/4 +
-	100 * sin(position / 1500 - ground_x / 50) -
-	200 * sin((position / 1500 - ground_x / 50) / 3) -
-	# 200 * sin(ground_x / 67) -
+	100 * sin(- ground_x / 50) -
+	200 * sin((- ground_x / 50) / 3) -
 	ground_x * 2
 
 delta_at = (ground_x)->
@@ -354,10 +359,20 @@ get_next_prop = ->
 	prop
 
 next_prop = get_next_prop()
+mouse_client_coords = {x: 100000, y: 100000}
+
+client_to_world = ({x, y})=>
+	x: x - canvas.width/2 + camera.centerX
+	y: y - canvas.height/2 + camera.centerY
+
+world_to_client = ({x, y})=>
+	x: x + canvas.width/2 - camera.centerX
+	y: y + canvas.height/2 - camera.centerY
 
 window.onclick = (e)->
-	x = e.clientX - canvas.width/2
-	y = e.clientY
+	mouse_client_coords.x = e.clientX
+	mouse_client_coords.y = e.clientY
+	{x, y} = client_to_world(mouse_client_coords)
 	next_prop.x = x
 	next_prop.y = y
 	next_prop.throw_to_next_hand()
@@ -367,10 +382,8 @@ window.onclick = (e)->
 	next_prop.y = y
 
 window.onmousemove = (e)->
-	x = e.clientX - canvas.width/2
-	y = e.clientY
-	next_prop.x = x
-	next_prop.y = y
+	mouse_client_coords.x = e.clientX
+	mouse_client_coords.y = e.clientY
 
 animate ->
 	
@@ -380,16 +393,24 @@ animate ->
 	particles = particles.filter((particle)-> particle.life > 0)
 	next_prop.angle += next_prop.vangle
 	
+	camera.centerX = dat_boi.position
+	camera.centerY = y_at(dat_boi.position) - canvas.height/3
+	
+	mouse_in_world = client_to_world(mouse_client_coords)
+	next_prop.x = mouse_in_world.x
+	next_prop.y = mouse_in_world.y
+
 	ctx.fillStyle = "hsl(#{sin(Date.now() / 10000) * 360}, 80%, 80%)"
 	ctx.fillRect(0, 0, canvas.width, canvas.height)
 	
 	ctx.save()
-	ctx.translate(canvas.width / 2, 0)
+	ctx.translate(canvas.width / 2, canvas.height / 2)
+	ctx.translate(-camera.centerX, -camera.centerY)
 	
 	ctx.beginPath()
 	ctx.lineWidth = 150
 	bound = canvas.width/2 + ctx.lineWidth
-	for ground_x in [-bound..bound] by 5
+	for ground_x in [camera.centerX-bound..camera.centerX+bound] by 5
 		ctx.lineTo(ground_x, y_at(ground_x))
 	ctx.strokeStyle = "hsl(#{sin(Date.now() / 10000) * 360 + 20}, 100%, 90%)"
 	ctx.stroke()
@@ -402,13 +423,14 @@ animate ->
 	particle.draw() for particle in particles
 
 	if window.visualize_trajectory
-		old_position = position
-		old_velocity = dat_boi.velocity
 		prop_save_states = props.map (prop)->
 			properties = Object.fromEntries(Prop.save_properties.map (key)->
 				[key, prop[key]]
 			)
 			{ prop, properties }
+		dat_boi_saved_properties = Object.fromEntries(Unifrog.save_properties.map (key)->
+			[key, dat_boi[key]]
+		)
 		ctx.globalAlpha = 0.1
 		for [0..40]
 			for prop in props
@@ -419,7 +441,7 @@ animate ->
 		for { prop, properties } in prop_save_states
 			for key in Prop.save_properties
 				prop[key] = properties[key]
-		position = old_position
-		dat_boi.velocity = old_velocity
+		for key in Unifrog.save_properties
+			dat_boi[key] = dat_boi_saved_properties[key]
 	
 	ctx.restore()
