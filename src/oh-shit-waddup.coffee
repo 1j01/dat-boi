@@ -208,8 +208,12 @@ class Prop
 		@height_reached_after_bounce = -Infinity
 		@collides_with_ground = false
 		@in_ground = false
+
+		# a gain node will work in conjunction with the panner to make sounds fade out when far away
 		@panner_node = audio_ctx.createStereoPanner()
-		@panner_node.connect(audio_ctx.destination)
+		@gain_node = audio_ctx.createGain()
+		@gain_node.connect(audio_ctx.destination)
+		@panner_node.connect(@gain_node)
 	
 	throw_to: (x_to, y_to, parabola_height)->
 		dx = x_to - @x
@@ -246,6 +250,8 @@ class Prop
 		
 		client_pos = world_to_client({ x: @x, y: @y }) # (or (@))
 		@panner_node.pan.value = Math.min(1, Math.max(-1, client_pos.x / canvas.width))
+		distance_to_center_x = Math.abs(client_pos.x - canvas.width / 2)
+		@gain_node.gain.value = Math.min(1, Math.max(0, 2 - distance_to_center_x / (canvas.width / 2)))
 
 		hand = @in_hand?.hand ? @next_hand_right
 		hand_x = @frog.get_hand_x(hand)
