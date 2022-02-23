@@ -75,6 +75,18 @@ addEventListener("pointerdown", (=> music.play()), { once: true })
 
 camera = { centerX: 0, centerY: 0 }
 
+get_normal = (a) =>
+	{ x: Math.sin(a), y: -Math.cos(a) }
+
+dot = (v1, v2) =>
+	v1.x * v2.x + v1.y * v2.y
+
+reflect = (n, v) =>
+	d = 2 * dot(v, n)
+	v.x -= d * n.x
+	v.y -= d * n.y
+	return
+
 class Unifrog
 	
 	frames =
@@ -274,11 +286,14 @@ class Prop
 				# @play_bounce_sound(true)
 		
 		if @y > y_at(@x) and @collides_with_ground
-			@vy = -0.9 * abs(@vy)
-			@vx += delta_at(@x)
-			# if @y + @vy <= y_at(@x + @vx)
-				# exiting the ground
-			# @play_bounce_sound(false)
+			ground_slope = delta_at(@x)
+			ground_normal = get_normal(Math.atan(ground_slope))
+			velocity = {x: @vx, y: @vy}
+			reflect(ground_normal, velocity)
+			@vx = velocity.x
+			@vy = velocity.y
+			
+			# using a flag so it doesn't play the sound a million times if stuck in the ground
 			@in_ground = true
 		else if @in_ground
 			# exiting the ground
