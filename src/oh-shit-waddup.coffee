@@ -72,7 +72,17 @@ music.loop = true
 addEventListener("pointerdown", (=> music.play()), { once: true })
 
 
+gravity = 0.5
+
 camera = { center_x: 0, center_y: 0 }
+
+client_to_world = ({x, y})=>
+	x: x - canvas.width/2 + camera.center_x
+	y: y - canvas.height/2 + camera.center_y
+
+world_to_client = ({x, y})=>
+	x: x + canvas.width/2 - camera.center_x
+	y: y + canvas.height/2 - camera.center_y
 
 get_normal = (a) =>
 	{ x: Math.sin(a), y: -Math.cos(a) }
@@ -129,11 +139,6 @@ class Unifrog
 		ctx.rotate delta_at(@position - 10) / 3
 		ctx.drawImage frame, -185, -390
 		ctx.restore()
-
-
-props = []
-particles = []
-
 class Particle
 
 	constructor: (@x, @y, @vx, @vy, @vangle)->
@@ -167,8 +172,6 @@ class Particle
 		ctx.fillStyle = "rgba(255, 255, 255, 0.9)"
 		ctx.fillRect -1, -2, 2, 4
 		ctx.restore()
-
-gravity = 0.5
 
 class Prop
 	
@@ -371,6 +374,9 @@ y_at = (ground_x)->
 delta_at = (ground_x)->
 	y_at(ground_x+0.4) - y_at(ground_x-0.4)
 
+props = []
+particles = []
+
 dat_boi = new Unifrog
 
 starting_hand_right = false
@@ -398,14 +404,6 @@ get_next_prop = ->
 
 next_prop = get_next_prop()
 mouse_client_coords = {x: 100000, y: 100000}
-
-client_to_world = ({x, y})=>
-	x: x - canvas.width/2 + camera.center_x
-	y: y - canvas.height/2 + camera.center_y
-
-world_to_client = ({x, y})=>
-	x: x + canvas.width/2 - camera.center_x
-	y: y + canvas.height/2 - camera.center_y
 
 window.onclick = (e)->
 	mouse_client_coords.x = e.clientX
