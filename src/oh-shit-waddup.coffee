@@ -72,7 +72,7 @@ music.loop = true
 addEventListener("pointerdown", (=> music.play()), { once: true })
 
 
-camera = { centerX: 0, centerY: 0 }
+camera = { center_x: 0, center_y: 0 }
 
 get_normal = (a) =>
 	{ x: Math.sin(a), y: -Math.cos(a) }
@@ -400,12 +400,12 @@ next_prop = get_next_prop()
 mouse_client_coords = {x: 100000, y: 100000}
 
 client_to_world = ({x, y})=>
-	x: x - canvas.width/2 + camera.centerX
-	y: y - canvas.height/2 + camera.centerY
+	x: x - canvas.width/2 + camera.center_x
+	y: y - canvas.height/2 + camera.center_y
 
 world_to_client = ({x, y})=>
-	x: x + canvas.width/2 - camera.centerX
-	y: y + canvas.height/2 - camera.centerY
+	x: x + canvas.width/2 - camera.center_x
+	y: y + canvas.height/2 - camera.center_y
 
 window.onclick = (e)->
 	mouse_client_coords.x = e.clientX
@@ -430,8 +430,8 @@ animate ->
 	particles = particles.filter((particle)-> particle.life > 0)
 	next_prop.angle += next_prop.vangle
 	
-	camera.centerX = dat_boi.position
-	camera.centerY = y_at(dat_boi.position) - canvas.height/3
+	camera.center_x = dat_boi.position
+	camera.center_y = y_at(dat_boi.position) - canvas.height/3
 	
 	mouse_in_world = client_to_world(mouse_client_coords)
 	next_prop.x = mouse_in_world.x
@@ -442,12 +442,12 @@ animate ->
 	
 	ctx.save()
 	ctx.translate(canvas.width / 2, canvas.height / 2)
-	ctx.translate(-camera.centerX, -camera.centerY)
+	ctx.translate(-camera.center_x, -camera.center_y)
 	
 	ctx.beginPath()
 	ctx.lineWidth = 150
 	bound = canvas.width/2 + ctx.lineWidth
-	for ground_x in [camera.centerX-bound..camera.centerX+bound] by 5
+	for ground_x in [camera.center_x-bound..camera.center_x+bound] by 5
 		ctx.lineTo(ground_x, y_at(ground_x))
 	ctx.strokeStyle = "hsl(#{sin(Date.now() / 10000) * 360 + 20}, 100%, 90%)"
 	ctx.stroke()
