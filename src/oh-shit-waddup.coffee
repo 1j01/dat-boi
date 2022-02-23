@@ -8,6 +8,9 @@ sound_file_paths = {
 	chainsaw_rev: "audio/sfx/chainsaw-rev-#.ogg"
 	chainsaw_start: "audio/sfx/chainsaw-start.ogg"
 	chainsaw_engine_loop: "audio/sfx/chainsaw-engine-loop.ogg"
+	table_saw_start: "audio/sfx/table-saw-start.mp3"
+	table_saw_loop: "audio/sfx/table-saw-loop.mp3"
+	whoosh: "audio/sfx/whoosh.ogg"
 }
 sound_variation_counts = {
 	quack: 12
@@ -237,8 +240,13 @@ class Prop
 				play_sound("chirp", { playback_rate_variation: 0.1 })
 			else if @type is "torch"
 				play_sound("flame", { playback_rate_variation: 0.2 })
-			else if @type is "chainsaw" or @type is "table_saw"
+			else if @type is "chainsaw"
 				play_sound("chainsaw_rev", { playback_rate_variation: 0.2 })
+			else if @type is "table_saw"
+				# play_sound("chainsaw_rev", { playback_rate_variation: 0.2 })
+				# play_sound("table_saw_loop", { playback_rate_variation: 0.2 })
+				# play_sound("table_saw_loop", { playback_rate: 20 })
+				play_sound("whoosh", { playback_rate_variation: 0.2 })
 			else
 				play_sound("bounce", { playback_rate: Math.pow(@vy / -15, 1.2) + 0.2, volume: 0.2 })
 		
@@ -249,13 +257,13 @@ class Prop
 	start_engine: ->
 		if @type isnt "chainsaw" and @type isnt "table_saw"
 			return
-		await play_sound("chainsaw_start")
+		await play_sound(if @type is "table_saw" then "table_saw_start" else "chainsaw_start")
 		@loop_engine()
 	
 	loop_engine: ->
 		if @type isnt "chainsaw" and @type isnt "table_saw"
 			return
-		await play_sound("chainsaw_engine_loop")
+		await play_sound(if @type is "table_saw" then "table_saw_loop" else "chainsaw_engine_loop")
 		@loop_engine()
 
 	draw: ->
