@@ -235,25 +235,28 @@ class Prop
 			@height_reached_after_bounce = @y
 			@collides_with_ground = true
 			@throw_to_next_hand()
-			if @type is "duck"
-				play_sound("quack")
-			else if @type is "duckie"
-				play_sound("chirp", { playback_rate_variation: 0.1 })
-			else if @type is "torch"
-				play_sound("flame", { playback_rate_variation: 0.2 })
-			else if @type is "chainsaw"
-				play_sound("chainsaw_rev", { playback_rate_variation: 0.2 })
-			else if @type is "table_saw"
-				# play_sound("chainsaw_rev", { playback_rate_variation: 0.2 })
-				# play_sound("table_saw_loop", { playback_rate_variation: 0.2 })
-				# play_sound("table_saw_loop", { playback_rate: 20 })
-				play_sound("whoosh", { playback_rate_variation: 0.2 })
-			else
-				play_sound("bounce", { playback_rate: Math.pow(@vy / -15, 1.2) + 0.2, volume: 0.2 })
+			@play_juggle_sound()
 		
 		if @y > y_at(@x) and @collides_with_ground
 			@vy = -0.9 * abs(@vy)
 			@vx += delta_at(@x)
+	
+	play_juggle_sound: ->
+		if @type is "duck"
+			play_sound("quack")
+		else if @type is "duckie"
+			play_sound("chirp", { playback_rate_variation: 0.1 })
+		else if @type is "torch"
+			play_sound("flame", { playback_rate_variation: 0.2 })
+		else if @type is "chainsaw"
+			play_sound("chainsaw_rev", { playback_rate_variation: 0.2 })
+		else if @type is "table_saw"
+			# play_sound("chainsaw_rev", { playback_rate_variation: 0.2 })
+			# play_sound("table_saw_loop", { playback_rate_variation: 0.2 })
+			# play_sound("table_saw_loop", { playback_rate: 20 })
+			play_sound("whoosh", { playback_rate_variation: 0.2 })
+		else
+			play_sound("bounce", { playback_rate: Math.pow(@vy / -15, 1.2) + 0.2, volume: 0.2 })
 	
 	start_engine: ->
 		if @type isnt "chainsaw" and @type isnt "table_saw"
