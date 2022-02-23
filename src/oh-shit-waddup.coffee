@@ -65,11 +65,10 @@ play_sound = (name, { playback_rate = 1, playback_rate_variation = 0, volume = 1
 		# console.warn("no sound named", name)
 		return Promise.reject(new Error("no sound named " + name))
 
-# Using <audio> for music, so that system media controls can be used (on iOS)
+# Using <audio> for music, so that system media controls can be used (on iOS), theoretically.
 music = new Audio()
 music.src = music_tracks[Math.floor(Math.random() * music_tracks.length)]
 music.loop = true
-# music.play()
 addEventListener("pointerdown", (=> music.play()), { once: true })
 
 
@@ -137,9 +136,6 @@ particles = []
 
 class Particle
 
-	# flame_image = new Image
-	# flame_image.src = "images/flame.png"
-
 	constructor: (@x, @y, @vx, @vy, @vangle)->
 		@angle = Math.random() * Math.PI * 2
 		@vx /= 5
@@ -164,9 +160,6 @@ class Particle
 		ctx.rotate @angle
 		scale = Math.pow(@life / 80, 6)
 		ctx.scale scale, scale
-		# ctx.drawImage @flame_image, -@flame_image.width / 2, -@flame_image.height / 2
-		# ctx.shadowBlur = 10
-		# ctx.shadowColor = "rgba(255, 125, 0, 0.2)"
 		ctx.fillStyle = "rgba(255, 125, 0, 0.3)"
 		ctx.fillRect -4, -8, 8, 16
 		ctx.fillStyle = "rgba(255, 255, 0, 0.6)"
@@ -264,7 +257,6 @@ class Prop
 		if @in_hand
 			@x = hand_x
 			@y = hand_y
-			# @angle = 0
 			@in_hand.time += 1
 			time_needed = switch @type
 				when "ball" then 0
@@ -291,8 +283,6 @@ class Prop
 				@in_hand = { hand: @next_hand_right, time: 0 }
 				@next_hand_right = not @next_hand_right
 				@height_reached_after_bounce = @y
-				# @throw_to_next_hand()
-				# @play_bounce_sound(true)
 		
 		if @y > y_at(@x) and @collides_with_ground
 			ground_slope = delta_at(@x)
@@ -327,9 +317,6 @@ class Prop
 		else if @type is "chainsaw"
 			@play_sound("chainsaw_rev", { playback_rate_variation: 0.2 })
 		else if @type is "table_saw"
-			# @play_sound("chainsaw_rev", { playback_rate_variation: 0.2 })
-			# @play_sound("table_saw_loop", { playback_rate_variation: 0.2 })
-			# @play_sound("table_saw_loop", { playback_rate: 20 })
 			if juggling
 				@play_sound("whoosh", { playback_rate_variation: 0.2 })
 			else
@@ -384,14 +371,6 @@ y_at = (ground_x)->
 delta_at = (ground_x)->
 	y_at(ground_x+0.4) - y_at(ground_x-0.4)
 
-# get_unicycle_ball_stuck_x = (ground_x, left)->
-# 	rot = delta_at(-10) / 3
-# 	sin(rot) * 185
-# 
-# get_unicycle_ball_stuck_y = (ground_x, left)->
-# 	rot = delta_at(-10) / 3
-# 	y_at(0) - cos(rot) * 185
-
 dat_boi = new Unifrog
 
 starting_hand_right = false
@@ -435,7 +414,6 @@ window.onclick = (e)->
 	next_prop.x = x
 	next_prop.y = y
 	next_prop.throw_to_next_hand()
-	# starting_hand_right = not starting_hand_right
 	next_prop = get_next_prop()
 	next_prop.x = x
 	next_prop.y = y
@@ -481,26 +459,4 @@ animate ->
 	prop.draw() for prop in props
 	particle.draw() for particle in particles
 
-	if window.visualize_trajectory
-		prop_save_states = props.map (prop)->
-			properties = Object.fromEntries(Prop.save_properties.map (key)->
-				[key, prop[key]]
-			)
-			{ prop, properties }
-		dat_boi_saved_properties = Object.fromEntries(Unifrog.save_properties.map (key)->
-			[key, dat_boi[key]]
-		)
-		ctx.globalAlpha = 0.1
-		for [0..40]
-			for prop in props
-				prop.step()
-				prop.draw()
-			dat_boi.step()
-		ctx.globalAlpha = 1
-		for { prop, properties } in prop_save_states
-			for key in Prop.save_properties
-				prop[key] = properties[key]
-		for key in Unifrog.save_properties
-			dat_boi[key] = dat_boi_saved_properties[key]
-	
 	ctx.restore()
