@@ -179,7 +179,7 @@ class Prop
 	table_saw_image = new Image
 	table_saw_image.src = "images/table-saw.png"
 
-	@save_properties = ["x", "y", "angle", "vx", "vy", "vangle", "next_hand_right", "height_reached_after_bounce", "collides_with_ground"]
+	@save_properties = ["x", "y", "angle", "vx", "vy", "vangle", "next_hand_right", "height_reached_after_bounce", "collides_with_ground", "in_ground"]
 
 	constructor: (@x, @y, @frog, @type)->
 		@vx = 0
@@ -189,6 +189,7 @@ class Prop
 		@next_hand_right = starting_hand_right
 		@height_reached_after_bounce = -Infinity
 		@collides_with_ground = false
+		@in_ground = false
 	
 	throw_to: (x_to, y_to, parabola_height)->
 		dx = x_to - @x
@@ -235,13 +236,22 @@ class Prop
 			@height_reached_after_bounce = @y
 			@collides_with_ground = true
 			@throw_to_next_hand()
-			@play_juggle_sound()
+			@play_bounce_sound(true)
 		
 		if @y > y_at(@x) and @collides_with_ground
 			@vy = -0.9 * abs(@vy)
 			@vx += delta_at(@x)
+			# if @y + @vy <= y_at(@x + @vx)
+				# exiting the ground
+			# @play_bounce_sound(false)
+			@in_ground = true
+		else if @in_ground
+			# exiting the ground
+			@in_ground = false
+			@play_bounce_sound(false)
 	
-	play_juggle_sound: ->
+	play_bounce_sound: (juggling)->
+		# TODO: clank sounds for chainsaw and table saw when hitting ground (not juggling)
 		if @type is "duck"
 			play_sound("quack")
 		else if @type is "duckie"
@@ -254,7 +264,10 @@ class Prop
 			# play_sound("chainsaw_rev", { playback_rate_variation: 0.2 })
 			# play_sound("table_saw_loop", { playback_rate_variation: 0.2 })
 			# play_sound("table_saw_loop", { playback_rate: 20 })
-			play_sound("whoosh", { playback_rate_variation: 0.2 })
+			if juggling
+				play_sound("whoosh", { playback_rate_variation: 0.2 })
+			else
+				play_sound("bounce", { playback_rate: Math.pow(@vy / -15, 1.2) + 0.2, volume: 0.5 })
 		else
 			play_sound("bounce", { playback_rate: Math.pow(@vy / -15, 1.2) + 0.2, volume: 0.2 })
 	
