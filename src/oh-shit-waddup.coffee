@@ -248,10 +248,13 @@ class Prop
 		@angle += @vangle
 		@vy += gravity
 		
-		client_pos = world_to_client({ x: @x, y: @y }) # (or (@))
-		@panner_node.pan.value = Math.min(1, Math.max(-1, client_pos.x / canvas.width))
-		distance_to_center_x = Math.abs(client_pos.x - canvas.width / 2)
-		@gain_node.gain.value = Math.min(1, Math.max(0, 2 - distance_to_center_x / (canvas.width / 2)))
+		try
+			client_pos = world_to_client({ x: @x, y: @y }) # (or (@))
+			@panner_node.pan.value = Math.min(1, Math.max(-1, client_pos.x / canvas.width))
+			distance_to_center_x = Math.abs(client_pos.x - canvas.width / 2)
+			@gain_node.gain.value = Math.min(1, Math.max(0, 2 - distance_to_center_x / (canvas.width / 2)))
+		catch error
+			console.log "sound error in step", error, this
 
 		hand = @in_hand?.hand ? @next_hand_right
 		hand_x = @frog.get_hand_x(hand)
@@ -308,7 +311,10 @@ class Prop
 	
 	play_sound: (name, options={})->
 		options.destination ?= @panner_node
-		play_sound(name, options)
+		try
+			await play_sound(name, options)
+		catch error
+			console.log error, this
 
 	play_bounce_sound: (juggling)->
 		# TODO: clank sounds for chainsaw and table saw when hitting ground (not juggling)
