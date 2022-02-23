@@ -333,9 +333,9 @@ class Prop
 			if juggling
 				@play_sound("whoosh", { playback_rate_variation: 0.2 })
 			else
-				@play_sound("bounce", { playback_rate: Math.pow(@vy / -15, 1.2) + 0.2, volume: 0.5 })
+				@play_sound("bounce", { playback_rate: Math.pow(Math.abs(@vy / 15), 1.2) + 0.2, volume: 0.5 })
 		else
-			@play_sound("bounce", { playback_rate: Math.pow(@vy / -15, 1.2) + 0.2, volume: 0.2 })
+			@play_sound("bounce", { playback_rate: Math.pow(Math.abs(@vy / 15), 1.2) + 0.2, volume: 0.2 })
 	
 	start_engine: ->
 		if @type isnt "chainsaw" and @type isnt "table_saw"
