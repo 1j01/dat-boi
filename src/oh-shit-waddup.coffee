@@ -39,7 +39,7 @@ load_sound = memoize (path) =>
 	audio_buffer = await audio_ctx.decodeAudioData(array_buffer)
 
 # preload sounds
-for name, path in sound_file_paths
+for name, path of sound_file_paths
 	if sound_variation_counts[name]
 		for i in [1...sound_variation_counts[name]]
 			load_sound(path.replace("#", i))
