@@ -200,7 +200,7 @@ class Prop
 		@vy = 0
 		@vangle = 0
 		@angle = 0
-		@next_hand_right = starting_hand_right
+		@next_hand_right = false
 		@height_reached_after_bounce = -Infinity
 		@collides_with_ground = false
 		@in_ground = false
@@ -379,16 +379,15 @@ particles = []
 
 dat_boi = new Unifrog
 
-starting_hand_right = false
-duck_counter = 0
+duckling_counter = 0
 get_next_prop = ->
 	prop_type = "ball"
-	if duck_counter > 0
+	if duckling_counter > 0
 		prop_type = "duckie"
-		duck_counter -= 1
+		duckling_counter -= 1
 	else if Math.random() < 0.1 and props.filter((prop) -> prop.type is "duck").length < 1
 		prop_type = "duck"
-		duck_counter = 3 + Math.random() * 4
+		duckling_counter = 3 + Math.random() * 4
 	else if Math.random() < 0.1 and props.filter((prop) -> prop.type is "torch").length < 3
 		prop_type = "torch"
 	else if Math.random() < 0.1 and props.filter((prop) -> prop.type is "chainsaw").length < 3
