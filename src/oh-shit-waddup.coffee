@@ -257,23 +257,24 @@ class Prop
 		hand_y = @frog.get_hand_y(hand)
 		@height_reached_after_bounce = min(@height_reached_after_bounce, @y)
 		
-		if @in_hand
-			@x = hand_x
-			@y = hand_y
-			@in_hand.time += 1
-			time_needed = switch @type
-				when "ball" then 0
-				when "duck" then 20
-				when "duckie" then 0
-				when "torch" then 10
-				when "chainsaw" then 15
-				when "table-saw" then 20
-				else 0
-			if @in_hand.time > time_needed
-				@in_hand = null
-				@throw_to_next_hand()
-				@play_bounce_sound(true)
-		else if (
+		# if @in_hand
+		# 	@x = hand_x
+		# 	@y = hand_y
+		# 	@in_hand.time += 1
+		# 	time_needed = switch @type
+		# 		when "ball" then 0
+		# 		when "duck" then 20
+		# 		when "duckie" then 0
+		# 		when "torch" then 10
+		# 		when "chainsaw" then 15
+		# 		when "table-saw" then 20
+		# 		else 0
+		# 	if @in_hand.time > time_needed
+		# 		@in_hand = null
+		# 		@throw_to_next_hand()
+		# 		@play_bounce_sound(true)
+		# else
+		if (
 			(@height_reached_after_bounce < hand_y - 30) and
 			(hand_x - 30 < @x < hand_x + 30) and
 			(hand_y < @y < hand_y + 50)
@@ -283,9 +284,11 @@ class Prop
 			)
 			@collides_with_ground = true
 			if not hand_occupied
-				@in_hand = { hand: @next_hand_right, time: 0 }
+				# @in_hand = { hand: @next_hand_right, time: 0 }
 				@next_hand_right = not @next_hand_right
 				@height_reached_after_bounce = @y
+				@throw_to_next_hand()
+				@play_bounce_sound(true)
 		
 		if @y > y_at(@x) and @collides_with_ground
 			ground_slope = delta_at(@x)
