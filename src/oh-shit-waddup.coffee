@@ -111,14 +111,14 @@ class Unifrog
 		@velocity = 0
 		@wheel_rotation = 0
 	
-	get_hand_x: (right)->
+	get_hand_x: (for_right_hand)->
 		rot = delta_at(@position - 10) / 3
-		hand_x = if right then -120 else 40
+		hand_x = if for_right_hand then -120 else 40
 		@position + sin(rot) * 285 + cos(rot) * hand_x
 	
-	get_hand_y: (right)->
+	get_hand_y: (for_right_hand)->
 		rot = delta_at(@position - 10) / 3
-		hand_x = if right then -120 else 40
+		hand_x = if for_right_hand then -120 else 40
 		y_at(@position) - cos(rot) * 285 + sin(rot) * hand_x
 	
 	step: ->
@@ -252,9 +252,9 @@ class Prop
 		catch error
 			console.log "sound error in step", error, this
 
-		hand = @in_hand?.hand ? @next_hand_right
-		hand_x = @frog.get_hand_x(hand)
-		hand_y = @frog.get_hand_y(hand)
+		into_right_hand = @in_hand?.is_right_hand ? @next_hand_right
+		hand_x = @frog.get_hand_x(into_right_hand)
+		hand_y = @frog.get_hand_y(into_right_hand)
 		@height_reached_after_bounce = min(@height_reached_after_bounce, @y)
 		
 		if @in_hand
@@ -279,11 +279,11 @@ class Prop
 			(hand_y < @y < hand_y + 50)
 		)
 			hand_occupied = props.some((prop)->
-				prop.in_hand? and prop.in_hand.hand == hand
+				prop.in_hand? and prop.in_hand.is_right_hand == into_right_hand
 			)
 			@collides_with_ground = true
 			if not hand_occupied
-				@in_hand = { hand: @next_hand_right, time: 0 }
+				@in_hand = { is_right_hand: @next_hand_right, time: 0 }
 				@next_hand_right = not @next_hand_right
 				@height_reached_after_bounce = @y
 		
