@@ -248,8 +248,7 @@ class Prop
 			client_pos = world_to_client({ x: @x, y: @y }) # (or (@))
 			@panner_node.pan.value = Math.min(1, Math.max(-1, client_pos.x / canvas.width))
 			distance_to_center_x = Math.abs(client_pos.x - canvas.width / 2)
-			falloff = Math.max(0, distance_to_center_x / (canvas.width / 2) - 1) # - 1 means it starts fading out at the edge of the screen
-			falloff = Math.pow(falloff / 30, 1.5)
+			falloff = Math.pow(Math.max(0, distance_to_center_x / 400 - 1) / 30, 1.5)
 			@gain_node.gain.value = Math.max(0, 1 - falloff)
 		catch error
 			console.log "sound error in step", error, this
